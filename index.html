@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full antialiased">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Narindra Techno Tools - Professional Grade Tools & Heavy Machinery</title>
+  <meta name="description" content="Narindra Techno Tools offers products designed to meet the needs of professionals and DIY enthusiasts alike. Built to last, providing reliability and performance for all your industrial projects." />
+  <meta name="keywords" content="narindra techno tools, industrial tools india, hardware store kotkapura, power tools online, bosch tools india, makita angle grinder, dewalt drill machine, esab welding machine, mitutoyo vernier caliper" />
+  <meta name="theme-color" content="#0a0a0a" />
+
+  <!-- Open Graph / Social Tags -->
+  <meta property="og:title" content="Narindra Techno Tools Corporation - Since 1998" />
+  <meta property="og:description" content="Professional-grade hardware for the modern tradesman. Heavy machinery, power tools, and welding equipment." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="logo.png" />
+
+  <!-- Google Fonts: Baloo 2 & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN & Custom Black-White-Orange Theme Stylesheet -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-[#0a0a0a] text-zinc-100 flex flex-col min-h-screen font-sans selection:bg-[#ff5500] selection:text-white">
+
+  <!-- ================= OPENING SPLASH LOADING SCREEN ================= -->
+  <div id="opening-splash" class="splash-screen">
+    <div class="splash-logo-container">
+      <div class="splash-pulse-ring"></div>
+      <img src="logo.png" alt="Narindra Logo" class="w-12 h-12 object-contain" />
+    </div>
+    <h2 class="splash-title">Narindra</h2>
+    <span class="splash-subtitle">Techno Tools Corp</span>
+    <div class="splash-loader-bar">
+      <div class="splash-loader-progress"></div>
+    </div>
+  </div>
+
+  <!-- ================= HEADER NAVBAR ================= -->
+  <header class="fixed top-0 w-full z-50 glass-header py-4 animate-slide-down">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14">
+        
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-3 group select-none">
+          <div class="relative h-11 w-11 flex-shrink-0 bg-white/5 rounded-xl p-1 border border-white/10 group-hover:border-[#ff5500] transition-colors">
+            <img src="logo.png" alt="Narindra Techno Tools Logo" class="w-full h-full object-contain" />
+          </div>
+          <div class="flex flex-col">
+            <span class="text-xl font-black tracking-tight text-white uppercase leading-none font-display">Narindra</span>
+            <span class="text-[9px] font-mono-custom text-zinc-400 uppercase tracking-[0.25em] font-bold mt-0.5">Techno Tools Corp</span>
+            <span class="text-[8px] font-bold text-[#ff5500] uppercase tracking-widest leading-none mt-0.5">Since 1998 • Kotkapura</span>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="#" class="nav-link active text-xs font-black uppercase tracking-[0.2em] text-zinc-300 hover:text-white transition-colors">Home</a>
+          <a href="#catalog-section" class="nav-link text-xs font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors">Products Catalog</a>
+          <a href="#about-section" class="nav-link text-xs font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors">Why Narindra</a>
+          <a href="#contact-section" class="nav-link text-xs font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors">Contact</a>
+        </nav>
+
+        <!-- Right Utilities & Call Hotline -->
+        <div class="flex items-center gap-3">
+          
+          <!-- Direct Sales Phone Desk -->
+          <a href="tel:+918283848559" class="hidden lg:flex items-center gap-2.5 bg-[#ff5500]/10 border border-[#ff5500]/30 text-[#ff5500] px-3.5 py-1.5 rounded-full text-xs font-bold font-mono-custom hover:bg-[#ff5500]/20 transition-colors shadow-sm animate-wiggle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>+91 82838 48559</span>
+          </a>
+
+          <!-- Cart Trigger Button -->
+          <button id="btn-open-cart" class="relative p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-zinc-300 hover:text-white transition-all active:scale-95 animate-squish">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-[#ff5500] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#0a0a0a]" style="display:none;">0</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= HERO SECTION ================= -->
+  <section class="relative min-h-screen flex items-center pt-28 pb-16 overflow-hidden bg-[#0a0a0a] border-b border-[#2a2a2a]">
+    
+    <!-- Background Image with Dark Vignette Overlay -->
+    <div class="absolute inset-0 z-0">
+      <div class="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/90 to-[#0a0a0a]/60 z-10"></div>
+      <img src="hero.png" alt="Industrial Backdrop" class="w-full h-full object-cover opacity-35 grayscale filter brightness-75" />
+    </div>
+
+    <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-2 items-center gap-12 pt-8">
+      
+      <!-- Hero Left Text -->
+      <div class="flex flex-col">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full badge-orange text-[10px] font-black uppercase tracking-[0.2em] mb-6 w-fit animate-bounce-in delay-200">
+          <span class="w-2 h-2 rounded-full bg-[#ff5500] animate-ping"></span>
+          India's Premier Industrial Hardware Store
+        </div>
+
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white uppercase italic leading-[0.95] mb-6 font-display animate-slide-up delay-300">
+          Pro-Grade <br />
+          <span class="text-[#ff5500] italic">Machinery.</span> <br />
+          <span class="white-stroke text-transparent">Direct Access.</span>
+        </h1>
+
+        <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-lg font-medium uppercase tracking-wider mb-8 border-l-2 border-[#ff5500]/80 pl-4 animate-slide-up delay-400">
+          The definitive source for genuine industrial components, heavy power tools, welding equipment, and precision measuring gear. Engineered for India's toughest sectors.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-wrap gap-4 mb-10 animate-slide-up delay-500">
+          <a href="#catalog-section" class="btn-orange text-xs font-black uppercase tracking-widest px-8 py-4 flex items-center gap-3 animate-squish">
+            <span>Shop Collection</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+
+          <a href="tel:+918283848559" class="btn-call-now text-xs font-black uppercase tracking-widest px-8 py-4 flex items-center gap-3 animate-squish animate-wiggle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>Call Hotline Now</span>
+          </a>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 pt-6 border-t border-white/10 animate-fade-in delay-500">
+          <div>
+            <span class="text-white text-xs font-black uppercase tracking-wider block">100% Genuine</span>
+            <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-tight">Certified Registry</span>
+          </div>
+          <div>
+            <span class="text-white text-xs font-black uppercase tracking-wider block">Express Dispatch</span>
+            <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-tight">Nationwide Shipping</span>
+          </div>
+          <div>
+            <span class="text-white text-xs font-black uppercase tracking-wider block">30+ Years Trust</span>
+            <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-tight">Est. 1998 Kotkapura</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Hero Right Decorative Badge -->
+      <div class="hidden lg:flex flex-col items-center justify-center animate-scale-in delay-400">
+        <div class="glass-card p-8 rounded-3xl border border-[#2a2a2a] max-w-md w-full text-center relative overflow-hidden shadow-2xl">
+          <div class="w-16 h-16 rounded-2xl bg-[#ff5500]/15 text-[#ff5500] flex items-center justify-center mx-auto mb-4 border border-[#ff5500]/30">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 class="text-xl font-black uppercase text-white tracking-tight mb-2 font-display">Direct Trade Hotline</h3>
+          <p class="text-xs text-zinc-400 mb-6 font-medium">Need custom quotes or immediate bulk tool procurement? Speak directly with our trade specialists.</p>
+          <a href="tel:+918283848559" class="w-full btn-call-now py-3.5 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>+91 82838 48559</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= BRAND PARTNERS MARQUEE ================= -->
+  <section class="py-8 bg-[#121212] border-b border-[#2a2a2a] overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4">
+      <p class="text-center text-[10px] font-mono-custom font-bold uppercase tracking-[0.3em] text-zinc-500 mb-6">Authorized Partner Registry & Branded Hardware</p>
+      <div class="flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-75">
+        <span class="text-2xl md:text-3xl font-black italic tracking-tighter text-zinc-400 hover:text-[#ff5500] transition-colors cursor-pointer uppercase">BOSCH</span>
+        <span class="text-2xl md:text-3xl font-black italic tracking-tighter text-zinc-400 hover:text-[#ff5500] transition-colors cursor-pointer uppercase">MAKITA</span>
+        <span class="text-2xl md:text-3xl font-black italic tracking-tighter text-zinc-400 hover:text-[#ff5500] transition-colors cursor-pointer uppercase">DEWALT</span>
+        <span class="text-2xl md:text-3xl font-black italic tracking-tighter text-zinc-400 hover:text-[#ff5500] transition-colors cursor-pointer uppercase">MILWAUKEE</span>
+        <span class="text-2xl md:text-3xl font-black italic tracking-tighter text-zinc-400 hover:text-[#ff5500] transition-colors cursor-pointer uppercase">HILTI</span>
+        <span class="text-2xl md:text-3xl font-black italic tracking-tighter text-zinc-400 hover:text-[#ff5500] transition-colors cursor-pointer uppercase">STANLEY</span>
+        <span class="text-2xl md:text-3xl font-black italic tracking-tighter text-zinc-400 hover:text-[#ff5500] transition-colors cursor-pointer uppercase">TAPARIA</span>
+        <span class="text-2xl md:text-3xl font-black italic tracking-tighter text-zinc-400 hover:text-[#ff5500] transition-colors cursor-pointer uppercase">MITUTOYO</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MAIN PRODUCTS CATALOG SECTION ================= -->
+  <section id="catalog-section" class="py-16 bg-[#0a0a0a] text-zinc-100 flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Catalog Header & Search Controls -->
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-8 border-b border-[#2a2a2a]">
+        <div>
+          <div class="h-1 w-12 bg-[#ff5500] mb-3"></div>
+          <h2 class="text-3xl sm:text-5xl font-extrabold uppercase tracking-tight text-white italic font-display">
+            Industrial <span class="text-[#ff5500] italic">Collection</span>
+          </h2>
+          <p id="products-count" class="text-xs font-bold uppercase tracking-wider text-zinc-400 mt-1 font-mono-custom">Loading Catalog Items...</p>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <!-- Search Bar -->
+          <div class="relative flex-1 md:w-64">
+            <input type="text" id="search-input" placeholder="Search power tools, brands..." class="w-full bg-[#161616] border border-[#2a2a2a] rounded-full px-4 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500] font-medium" />
+            <svg class="absolute right-3.5 top-3 text-zinc-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+
+          <!-- Brand Filter Dropdown -->
+          <select id="brand-select" class="bg-[#161616] border border-[#2a2a2a] rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-200 focus:outline-none focus:border-[#ff5500] cursor-pointer">
+            <option value="all">All Brands</option>
+            <option value="BOSCH">Bosch</option>
+            <option value="MAKITA">Makita</option>
+            <option value="DEWALT">DeWalt</option>
+            <option value="MILWAUKEE">Milwaukee</option>
+            <option value="HILTI">Hilti</option>
+            <option value="STANLEY">Stanley</option>
+            <option value="TAPARIA">Taparia</option>
+            <option value="MITUTOYO">Mitutoyo</option>
+            <option value="IWELD">iWELD</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-10 scrollbar-none">
+        <button class="cat-filter-btn active category-pill" data-category="all">All Products</button>
+        <button class="cat-filter-btn category-pill" data-category="power-tools">Power Tools</button>
+        <button class="cat-filter-btn category-pill" data-category="welding">Welding Equipment</button>
+        <button class="cat-filter-btn category-pill" data-category="hand-tools">Hand Tools</button>
+        <button class="cat-filter-btn category-pill" data-category="measuring">Measuring & Precision</button>
+        <button class="cat-filter-btn category-pill" data-category="abrasives">Cutting & Abrasives</button>
+        <button class="cat-filter-btn category-pill" data-category="air-tools">Air Tools</button>
+      </div>
+
+      <!-- Dynamic Product Cards Grid -->
+      <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- Rendered via app.js -->
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= BEYOND STANDARD FEATURE SECTION ================= -->
+  <section id="about-section" class="py-20 bg-[#0a0a0a] border-t border-[#2a2a2a]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
+        <div>
+          <div class="h-1 w-10 bg-[#ff5500] mb-4"></div>
+          <h2 class="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight italic font-display">
+            Beyond <span class="text-[#ff5500] italic">Standard.</span>
+          </h2>
+        </div>
+        <p class="max-w-xs text-zinc-400 text-xs font-medium uppercase tracking-wider border-l-2 border-[#ff5500]/80 pl-4">
+          The structural backbone for heavy industry. Every tool is a calculated investment in operational uptime.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <div class="glass-card p-8 rounded-2xl border border-[#2a2a2a] hover:border-[#ff5500] transition-colors">
+          <div class="w-12 h-12 rounded-xl bg-[#ff5500]/20 text-[#ff5500] flex items-center justify-center mb-6">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 class="text-lg font-black uppercase text-white tracking-tight mb-2 font-display">Pro-Grade Shield</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed font-medium">Industrial-strength tools backed by complete manufacturer warranties and certified authentication.</p>
+        </div>
+
+        <div class="glass-card p-8 rounded-2xl border border-[#2a2a2a] hover:border-[#ff5500] transition-colors">
+          <div class="w-12 h-12 rounded-xl bg-[#ff5500]/20 text-[#ff5500] flex items-center justify-center mb-6">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <h3 class="text-lg font-black uppercase text-white tracking-tight mb-2 font-display">Rapid Logistics</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed font-medium">Reliable logistics network dispatching tools across India with end-to-end consignment tracking.</p>
+        </div>
+
+        <div class="glass-card p-8 rounded-2xl border border-[#2a2a2a] hover:border-[#ff5500] transition-colors">
+          <div class="w-12 h-12 rounded-xl bg-[#ff5500]/20 text-[#ff5500] flex items-center justify-center mb-6">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <h3 class="text-lg font-black uppercase text-white tracking-tight mb-2 font-display">Direct Trade Support</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed font-medium">Dedicated technical specialists ready to assist with tool selection and bulk order quotations over the phone.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= CUSTOMER REVIEWS ================= -->
+  <section class="py-20 bg-[#121212] border-t border-[#2a2a2a]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center mb-16">
+        <h2 class="text-2xl sm:text-4xl font-black uppercase italic tracking-tight text-white mb-3 font-display">
+          Trusted In <span class="text-[#ff5500]">The Field</span>
+        </h2>
+        <div class="flex items-center justify-center gap-2">
+          <div class="flex text-[#ff5500]">★★★★★</div>
+          <span class="text-xs font-bold text-zinc-400 font-mono-custom">4.9 / 5.0 Trade Rating</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <div class="bg-[#161616] p-8 rounded-2xl border border-[#2a2a2a] flex flex-col justify-between">
+          <p class="text-zinc-300 text-xs leading-relaxed font-medium mb-6">
+            "The heavy-duty Bosch impact drill sets outlasted everything else on our industrial construction site. Fast dispatch to Punjab."
+          </p>
+          <div class="pt-4 border-t border-[#2a2a2a] flex justify-between items-center">
+            <div>
+              <span class="text-xs font-black uppercase text-white block">Rajesh Kumar</span>
+              <span class="text-[10px] font-bold text-[#ff5500] uppercase">Site Foreman</span>
+            </div>
+            <span class="text-[10px] font-mono-custom text-emerald-400 font-bold">✓ Verified</span>
+          </div>
+        </div>
+
+        <div class="bg-[#161616] p-8 rounded-2xl border border-[#2a2a2a] flex flex-col justify-between">
+          <p class="text-zinc-300 text-xs leading-relaxed font-medium mb-6">
+            "Authentic Makita angle grinders at genuine prices. The Call Now option helped me clarify technical specs directly."
+          </p>
+          <div class="pt-4 border-t border-[#2a2a2a] flex justify-between items-center">
+            <div>
+              <span class="text-xs font-black uppercase text-white block">Arjun Mehta</span>
+              <span class="text-[10px] font-bold text-[#ff5500] uppercase">Carpenter Contractor</span>
+            </div>
+            <span class="text-[10px] font-mono-custom text-emerald-400 font-bold">✓ Verified</span>
+          </div>
+        </div>
+
+        <div class="bg-[#161616] p-8 rounded-2xl border border-[#2a2a2a] flex flex-col justify-between">
+          <p class="text-zinc-300 text-xs leading-relaxed font-medium mb-6">
+            "Narindra Techno Tools sales desk knows their specs. Guided me to pick the right 200A inverter welding machine for high-heat work."
+          </p>
+          <div class="pt-4 border-t border-[#2a2a2a] flex justify-between items-center">
+            <div>
+              <span class="text-xs font-black uppercase text-white block">Vikram Singh</span>
+              <span class="text-[10px] font-bold text-[#ff5500] uppercase">Industrial Welder</span>
+            </div>
+            <span class="text-[10px] font-mono-custom text-emerald-400 font-bold">✓ Verified</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer id="contact-section" class="bg-[#0a0a0a] border-t border-[#2a2a2a] pt-16 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        
+        <!-- Col 1: About -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-3">
+            <img src="logo.png" alt="Logo" class="w-8 h-8 object-contain" />
+            <div>
+              <span class="text-base font-black text-white uppercase block leading-none font-display">Narindra</span>
+              <span class="text-[8px] font-mono-custom text-zinc-500 uppercase tracking-widest block mt-0.5">Techno Tools Corp</span>
+            </div>
+          </div>
+          <p class="text-[11px] text-zinc-400 leading-relaxed uppercase tracking-wider font-medium">
+            Professional-grade hardware for the modern tradesman. Where uncompromising durability meets surgical accuracy.
+          </p>
+        </div>
+
+        <!-- Col 2: Navigation -->
+        <div>
+          <h4 class="text-xs font-mono-custom font-black uppercase tracking-[0.3em] mb-4 text-[#ff5500]">Catalog Links</h4>
+          <ul class="space-y-2 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+            <li><a href="#catalog-section" class="hover:text-white transition-colors">Power Tools</a></li>
+            <li><a href="#catalog-section" class="hover:text-white transition-colors">Welding Equipment</a></li>
+            <li><a href="#catalog-section" class="hover:text-white transition-colors">Hand Tools & Vices</a></li>
+            <li><a href="#catalog-section" class="hover:text-white transition-colors">Measuring Precision</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Business Hours -->
+        <div>
+          <h4 class="text-xs font-mono-custom font-black uppercase tracking-[0.3em] mb-4 text-[#ff5500]">Store Hours</h4>
+          <ul class="space-y-2 text-xs font-medium text-zinc-400">
+            <li>Mon - Sat: 9:00 AM - 8:00 PM</li>
+            <li>Sunday: 10:00 AM - 5:00 PM</li>
+            <li class="text-[#ff5500] font-bold font-mono-custom text-[11px] pt-1">Phone Desk: 24/7 Available</li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Contact Point -->
+        <div>
+          <h4 class="text-xs font-mono-custom font-black uppercase tracking-[0.3em] mb-4 text-[#ff5500]">Contact Point</h4>
+          <div class="space-y-3 text-xs font-medium text-zinc-400">
+            <div class="flex items-start gap-2.5">
+              <svg class="text-[#ff5500] shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Near new bus stand, Opposite Chopra Petrol Pump, Kotkapura, Punjab, 151204</span>
+            </div>
+            
+            <div class="flex items-center gap-2.5">
+              <svg class="text-[#ff5500] shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <a href="tel:+918283848559" class="font-bold font-mono-custom text-white hover:text-[#ff5500] transition-colors">+91 82838 48559</a>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+              <svg class="text-[#ff5500] shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <a href="mailto:narindratechotools@gmail.com" class="hover:text-white transition-colors">narindratechotools@gmail.com</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Copyright Bottom Bar -->
+      <div class="pt-8 border-t border-[#2a2a2a] flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-mono-custom text-zinc-500 uppercase tracking-widest">
+        <p>© 2026 Narindra Industrial Systems // All Rights Reserved.</p>
+        <div class="flex items-center gap-6">
+          <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[#ff5500]"></span> Sales Desk: Active</span>
+          <span>Ver: 2.5.0_PRO</span>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ================= SLIDE-OUT CART DRAWER ================= -->
+  <div id="cart-backdrop" class="drawer-backdrop"></div>
+  <div id="cart-drawer" class="drawer-panel shadow-2xl">
+    
+    <div class="p-6 border-b border-[#2a2a2a] flex items-center justify-between bg-[#0a0a0a] text-white">
+      <div>
+        <h3 class="text-lg font-black uppercase tracking-tight font-display">Shopping Cart</h3>
+        <span class="text-[10px] font-mono-custom text-[#ff5500] uppercase font-bold">Narindra Hardware Dispatch</span>
+      </div>
+      <button id="btn-close-cart" class="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Items List Container -->
+    <div id="cart-items-list" class="flex-1 overflow-y-auto p-6 space-y-4">
+      <!-- Dynamic cart items rendered via app.js -->
+    </div>
+
+    <!-- Summary & Checkout Footer -->
+    <div class="p-6 border-t border-[#2a2a2a] bg-[#161616] space-y-3">
+      <div class="flex justify-between text-xs text-zinc-400 font-medium">
+        <span>Items Subtotal</span>
+        <span id="cart-subtotal" class="font-bold font-mono-custom text-white">₹0</span>
+      </div>
+      <div class="flex justify-between text-xs text-zinc-400 font-medium">
+        <span>GST (18%)</span>
+        <span id="cart-gst" class="font-bold font-mono-custom text-white">₹0</span>
+      </div>
+      <div class="flex justify-between text-xs text-zinc-400 font-medium">
+        <span>Shipping</span>
+        <span class="font-bold text-[#ff5500] uppercase font-mono-custom">FREE Express</span>
+      </div>
+      <div class="pt-3 border-t border-[#2a2a2a] flex justify-between text-base font-black text-white">
+        <span>Total Payable</span>
+        <span id="cart-total" class="text-[#ff5500] font-mono-custom">₹0</span>
+      </div>
+
+      <button id="btn-checkout" class="w-full mt-4 btn-orange font-black text-xs uppercase tracking-widest py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95">
+        <span>Proceed to Checkout Inquiry</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= "CALL NOW" MODAL (User Request) ================= -->
+  <div id="call-modal-backdrop" class="modal-backdrop"></div>
+  <div id="call-modal" class="modal-container">
+    
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <span class="text-[9px] font-black uppercase tracking-widest text-[#ff5500] font-mono-custom">Direct Sales Desk</span>
+        <h3 class="text-lg font-black uppercase text-white leading-tight font-display">Call Narindra Techno Tools</h3>
+      </div>
+      <button id="btn-close-call-modal" class="p-1 text-zinc-400 hover:text-white transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Selected Product Info snippet -->
+    <div class="flex items-center gap-3 p-3 bg-[#161616] rounded-xl border border-[#2a2a2a] mb-6">
+      <img id="modal-product-img" src="" alt="Product" class="w-14 h-14 object-contain bg-white rounded-lg p-1" />
+      <div>
+        <h4 id="modal-product-name" class="text-xs font-bold text-white truncate max-w-[260px]">Product Name</h4>
+        <span id="modal-product-price" class="text-xs font-black text-[#ff5500] font-mono-custom mt-0.5 block">₹0</span>
+      </div>
+    </div>
+
+    <!-- Fast Action Buttons -->
+    <div class="space-y-3 mb-6">
+      <!-- Direct Call Button -->
+      <a id="modal-btn-direct-call" href="tel:+918283848559" class="w-full btn-call-now py-3.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-3">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span>Call Directly: +91 82838 48559</span>
+      </a>
+
+      <!-- WhatsApp Inquiry Button -->
+      <a id="modal-btn-whatsapp" href="#" target="_blank" class="w-full bg-[#161616] hover:bg-[#1e1e1e] border border-emerald-500/40 text-emerald-400 py-3.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-3 transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.162 4.24 4.316-1.131z"/></svg>
+        <span>Inquire via WhatsApp</span>
+      </a>
+    </div>
+
+    <!-- Quick Callback Request Form -->
+    <div class="pt-4 border-t border-[#2a2a2a]">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-3 font-mono-custom">Or Request Instant Callback</p>
+      <form id="callback-form" class="space-y-3">
+        <input type="text" id="callback-name" placeholder="Your Name / Business Name" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500]" />
+        <input type="tel" id="callback-phone" placeholder="Your Mobile Number (+91)" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500] font-mono-custom" />
+        <button type="submit" class="w-full btn-orange py-2.5 rounded-lg text-xs font-black uppercase tracking-wider">
+          Request Callback
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- ================= PRODUCT QUICK VIEW MODAL ================= -->
+  <div id="view-modal-backdrop" class="modal-backdrop"></div>
+  <div id="view-modal" class="modal-container max-w-xl">
+    
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <span id="view-product-brand" class="text-[10px] font-black uppercase tracking-widest text-[#ff5500] font-mono-custom">BRAND</span>
+        <h3 id="view-product-name" class="text-base font-bold text-white leading-tight mt-0.5 font-display">Product Title</h3>
+      </div>
+      <button id="btn-close-view-modal" class="p-1 text-zinc-400 hover:text-white transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+      <div class="aspect-square bg-white rounded-xl p-4 flex items-center justify-center border border-[#2a2a2a]">
+        <img id="view-product-img" src="" alt="Product" class="max-h-full max-w-full object-contain" />
+      </div>
+      
+      <div class="flex flex-col justify-between">
+        <div>
+          <div class="flex items-baseline gap-2 mb-2">
+            <span id="view-product-price" class="text-xl font-black text-[#ff5500] font-mono-custom">₹0</span>
+            <span id="view-product-mrp" class="text-xs font-medium text-zinc-500 line-through font-mono-custom">₹0</span>
+          </div>
+          <p id="view-product-desc" class="text-xs text-zinc-400 leading-relaxed font-medium mb-4">Product detailed description...</p>
+        </div>
+
+        <div id="view-product-specs" class="space-y-1 mb-4">
+          <!-- Dynamic Specs -->
+        </div>
+
+        <div class="action-buttons-group mt-auto">
+          <button id="view-btn-cart" class="btn-cart">
+            <span>Add Cart</span>
+          </button>
+          <button id="view-btn-call" class="btn-call-now">
+            <span>Call Now</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JavaScript App Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
