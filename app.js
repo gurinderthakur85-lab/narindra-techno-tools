@@ -662,10 +662,13 @@ function renderCartDrawer() {
 
   if (state.cart.length === 0) {
     container.innerHTML = `
-      <div class="py-16 text-center text-zinc-400">
-        <svg class="mx-auto mb-3 opacity-40 text-[#ff5500]" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-        <p class="font-bold uppercase text-xs tracking-wider text-white font-display">Your Shopping Cart is Empty</p>
-        <p class="text-xs mt-1 text-zinc-400">Add industrial tools to your cart or call our sales desk directly.</p>
+      <div class="py-16 text-center text-zinc-400 flex flex-col items-center">
+        <svg class="mb-4 opacity-40 text-[#ff5500]" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <p class="font-black uppercase text-sm tracking-wider text-white font-display mb-2">Your bag is empty</p>
+        <p class="text-xs text-zinc-400 mb-6 font-medium">Explore genuine pro-grade industrial machinery and tools.</p>
+        <button onclick="closeCartDrawer(); window.location.hash='#catalog-section';" class="btn-orange text-xs font-black uppercase tracking-widest px-6 py-3 rounded-xl shadow-lg active:scale-95">
+          Explore Products
+        </button>
       </div>
     `;
     if (subtotalSpan) subtotalSpan.textContent = "₹0";
