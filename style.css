@@ -201,8 +201,8 @@ header {
   transform: scale(0.97);
 }
 
-/* CALL NOW BUTTON - Orange Theme Glow */
-.btn-call-now {
+/* BUY NOW & CALL NOW BUTTON - Orange Theme Glow */
+.btn-call-now, .btn-buy-now {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -222,7 +222,7 @@ header {
   animation: callPulse 2.5s infinite;
 }
 
-.btn-call-now:hover {
+.btn-call-now:hover, .btn-buy-now:hover {
   background: linear-gradient(135deg, var(--narindra-orange-light), var(--narindra-orange));
   border-color: var(--narindra-orange-light);
   box-shadow: 0 4px 18px rgba(255, 85, 0, 0.5);
@@ -547,4 +547,98 @@ header {
 .delay-300 { animation-delay: 300ms; }
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
+
+/* ================= OWNER ADMIN PANEL & PRICE MANAGER ================= */
+.admin-modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -45%) scale(0.95);
+  width: 92%;
+  max-width: 900px;
+  max-height: 90vh;
+  background: #121212;
+  border: 1px solid var(--color-zinc-700);
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  z-index: 120;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #ffffff;
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.95);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-backdrop.active + .admin-modal-container,
+.admin-modal-container.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.admin-price-input {
+  background-color: #0a0a0a;
+  border: 1px solid var(--color-zinc-700);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  width: 100px;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.admin-price-input:focus {
+  outline: none;
+  border-color: var(--narindra-orange);
+  box-shadow: 0 0 10px var(--narindra-orange-glow);
+}
+
+.admin-product-row {
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.admin-product-row:hover {
+  border-color: var(--narindra-orange);
+}
+
+.admin-pin-modal {
+  max-width: 380px;
+}
+
+.checkout-modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -45%) scale(0.95);
+  width: 92%;
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--color-zinc-900);
+  border: 1px solid var(--color-zinc-700);
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  z-index: 102;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #ffffff;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+}
+
+.modal-backdrop.active + .checkout-modal-container,
+.checkout-modal-container.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
 

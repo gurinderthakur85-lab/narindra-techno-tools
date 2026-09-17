@@ -186,18 +186,25 @@ const PRODUCTS_DATA = [
 
 // --- GLOBAL APPLICATION STATE ---
 const state = {
-  products: [...PRODUCTS_DATA],
-  filteredProducts: [...PRODUCTS_DATA],
+  products: [],
+  filteredProducts: [],
   cart: [],
+  checkoutItems: [],
   categoryFilter: "all",
   brandFilter: "all",
   searchQuery: "",
+  adminSearchQuery: "",
   selectedProductForCall: null,
-  selectedProductForView: null
+  selectedProductForView: null,
+  selectedProductForQty: null,
+  selectedQtyCount: 1,
+  adminAuthenticated: false,
+  adminPasscode: "1998"
 };
 
 // --- INITIALIZATION ENGINE ---
 document.addEventListener("DOMContentLoaded", () => {
+  loadSavedProducts();
   loadSavedCart();
   setupEventListeners();
   renderProducts();
@@ -211,6 +218,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 1100);
 });
+
+// Load products from localStorage or fallback to defaults
+function loadSavedProducts() {
+  const saved = localStorage.getItem("ntt_custom_products");
+  if (saved) {
+    try {
+      state.products = JSON.parse(saved);
+    } catch (e) {
+      state.products = [...PRODUCTS_DATA];
+    }
+  } else {
+    state.products = [...PRODUCTS_DATA];
+  }
+  state.filteredProducts = [...state.products];
+}
+
+function saveProducts() {
+  localStorage.setItem("ntt_custom_products", JSON.stringify(state.products));
+}
 
 // Load cart from localStorage
 function loadSavedCart() {
@@ -271,11 +297,52 @@ function setupEventListeners() {
   document.getElementById("view-modal-backdrop")?.addEventListener("click", closeViewModal);
   document.getElementById("btn-close-view-modal")?.addEventListener("click", closeViewModal);
 
+  // Quantity Modal Listeners
+  document.getElementById("btn-close-qty-modal")?.addEventListener("click", closeQuantityModal);
+  document.getElementById("qty-modal-backdrop")?.addEventListener("click", closeQuantityModal);
+  document.getElementById("qty-btn-minus")?.addEventListener("click", () => changeQtyCount(-1));
+  document.getElementById("qty-btn-plus")?.addEventListener("click", () => changeQtyCount(1));
+  document.getElementById("qty-btn-confirm")?.addEventListener("click", confirmAddToCart);
+
+  const qtyInput = document.getElementById("qty-modal-input");
+  if (qtyInput) {
+    qtyInput.addEventListener("input", (e) => {
+      let val = parseInt(e.target.value, 10);
+      if (isNaN(val) || val < 1) val = 1;
+      state.selectedQtyCount = val;
+      updateQtyModalSubtotal();
+    });
+  }
+
   // Callback form submission
   document.getElementById("callback-form")?.addEventListener("submit", handleCallbackSubmit);
 
-  // Checkout button
+  // Checkout button & modal listeners
   document.getElementById("btn-checkout")?.addEventListener("click", handleCheckout);
+  document.getElementById("btn-close-checkout")?.addEventListener("click", closeCheckoutModal);
+  document.getElementById("checkout-backdrop")?.addEventListener("click", closeCheckoutModal);
+  document.getElementById("checkout-form")?.addEventListener("submit", handleCheckoutSubmit);
+
+  // Order Success Modal listeners
+  document.getElementById("btn-close-order-success")?.addEventListener("click", closeOrderSuccessModal);
+  document.getElementById("order-success-backdrop")?.addEventListener("click", closeOrderSuccessModal);
+
+  // Owner Admin Portal Listeners
+  document.getElementById("btn-open-admin")?.addEventListener("click", openAdminPortal);
+  document.getElementById("btn-close-admin-pin")?.addEventListener("click", closeAdminPinModal);
+  document.getElementById("admin-pin-backdrop")?.addEventListener("click", closeAdminPinModal);
+  document.getElementById("admin-pin-form")?.addEventListener("submit", handleAdminPinSubmit);
+  document.getElementById("btn-close-admin-dashboard")?.addEventListener("click", closeAdminDashboard);
+  document.getElementById("admin-backdrop")?.addEventListener("click", closeAdminDashboard);
+
+  // Admin Inventory Search
+  const adminSearchInput = document.getElementById("admin-search-input");
+  if (adminSearchInput) {
+    adminSearchInput.addEventListener("input", (e) => {
+      state.adminSearchQuery = e.target.value.toLowerCase().trim();
+      renderAdminProducts();
+    });
+  }
 }
 
 // --- FILTERING ENGINE ---
@@ -362,14 +429,14 @@ function renderProducts() {
 
           <!-- DUAL SIDE-BY-SIDE BUTTONS: ADD TO CART & CALL NOW -->
           <div class="action-buttons-group">
-            <button class="btn-cart animate-squish" onclick="addToCart('${product.id}')">
+            <button class="btn-cart animate-squish" onclick="openQuantityModal('${product.id}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
               <span>Cart</span>
             </button>
             
-            <button class="btn-call-now animate-squish animate-wiggle" onclick="openCallModal('${product.id}')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              <span>Call Now</span>
+            <button class="btn-buy-now animate-squish animate-wiggle" onclick="openCheckoutModal('${product.id}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              <span>Buy Now</span>
             </button>
           </div>
         </div>
@@ -451,7 +518,7 @@ function handleCallbackSubmit(e) {
   closeCallModal();
 }
 
-// --- PRODUCT QUICK VIEW MODAL ---
+// --- PRODUCT QUICK VIEW MODAL ENGINE ---
 function openViewModal(productId) {
   const product = state.products.find(p => p.id === productId);
   if (!product) return;
@@ -461,7 +528,7 @@ function openViewModal(productId) {
   document.getElementById("view-product-brand").textContent = product.brand;
   document.getElementById("view-product-name").textContent = product.name;
   document.getElementById("view-product-price").textContent = `₹${product.discountedPrice.toLocaleString('en-IN')}`;
-  document.getElementById("view-product-mrp").textContent = product.originalPrice > product.discountedPrice ? `₹${product.originalPrice.toLocaleString('en-IN')}` : '';
+  document.getElementById("view-product-mrp").textContent = product.originalPrice > product.discountedPrice ? `₹${product.originalPrice.toLocaleString('en-IN')}` : "";
   document.getElementById("view-product-desc").textContent = product.description;
   document.getElementById("view-product-img").src = product.image;
 
@@ -480,8 +547,8 @@ function openViewModal(productId) {
   const viewCartBtn = document.getElementById("view-btn-cart");
   if (viewCartBtn) {
     viewCartBtn.onclick = () => {
-      addToCart(product.id);
       closeViewModal();
+      openQuantityModal(product.id);
     };
   }
 
@@ -489,7 +556,7 @@ function openViewModal(productId) {
   if (viewCallBtn) {
     viewCallBtn.onclick = () => {
       closeViewModal();
-      openCallModal(product.id);
+      openCheckoutModal(product.id);
     };
   }
 
@@ -513,13 +580,15 @@ function closeViewModal() {
 }
 
 // --- CART MANAGEMENT & DRAWER ---
-function addToCart(productId) {
+function addToCart(productId, quantity = 1) {
   const product = state.products.find(p => p.id === productId);
   if (!product) return;
 
+  const numQty = Math.max(1, parseInt(quantity, 10) || 1);
+
   const existingItem = state.cart.find(item => item.id === productId);
   if (existingItem) {
-    existingItem.quantity += 1;
+    existingItem.quantity += numQty;
   } else {
     state.cart.push({
       id: product.id,
@@ -527,14 +596,14 @@ function addToCart(productId) {
       brand: product.brand,
       price: product.discountedPrice,
       image: product.image,
-      quantity: 1
+      quantity: numQty
     });
   }
 
   saveCart();
   updateCartBadge();
   renderCartDrawer();
-  showToast(`Added "${product.name.slice(0, 25)}..." to cart!`);
+  showToast(`Added ${numQty}x "${product.name.slice(0, 20)}..." to cart!`);
 }
 
 function updateQuantity(productId, delta) {
@@ -642,15 +711,165 @@ function renderCartDrawer() {
 
 function handleCheckout() {
   if (state.cart.length === 0) {
-    showToast("Cart is empty! Please add tools before checking out.");
+    showToast("Cart is empty! Select tools before checking out.");
+    return;
+  }
+  closeCartDrawer();
+  openCheckoutModal(null);
+}
+
+// --- CHECKOUT & DELIVERY DETAILS MODAL ENGINE ---
+function openCheckoutModal(productId = null) {
+  if (productId) {
+    const product = state.products.find(p => p.id === productId);
+    if (!product) return;
+    state.checkoutItems = [{
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      price: product.discountedPrice,
+      image: product.image,
+      quantity: 1
+    }];
+  } else {
+    if (state.cart.length === 0) {
+      showToast("Cart is empty! Select a tool to buy.");
+      return;
+    }
+    state.checkoutItems = JSON.parse(JSON.stringify(state.cart));
+  }
+
+  renderCheckoutSummary();
+
+  const backdrop = document.getElementById("checkout-backdrop");
+  const modal = document.getElementById("checkout-modal");
+  if (backdrop && modal) {
+    backdrop.classList.add("active");
+    modal.classList.add("active");
+  }
+}
+
+function closeCheckoutModal() {
+  document.getElementById("checkout-backdrop")?.classList.remove("active");
+  document.getElementById("checkout-modal")?.classList.remove("active");
+}
+
+function renderCheckoutSummary() {
+  const container = document.getElementById("checkout-items-list");
+  const totalPayableSpan = document.getElementById("checkout-total-payable");
+  if (!container) return;
+
+  if (!state.checkoutItems || state.checkoutItems.length === 0) {
+    container.innerHTML = `<p class="text-xs text-zinc-500 font-medium">No items selected.</p>`;
+    if (totalPayableSpan) totalPayableSpan.textContent = "₹0";
     return;
   }
 
-  showToast("Order Inquiry Received! Narindra Techno Tools dispatch team will contact you shortly.");
+  let subtotal = 0;
+  container.innerHTML = state.checkoutItems.map((item, idx) => {
+    const itemTotal = item.price * item.quantity;
+    subtotal += itemTotal;
+    return `
+      <div class="flex items-center justify-between gap-3 p-2.5 bg-[#0a0a0a] rounded-lg border border-[#2a2a2a]">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <img src="${item.image}" alt="${item.name}" class="w-10 h-10 object-contain bg-white rounded p-0.5 border border-[#2a2a2a]" />
+          <div class="min-w-0 flex-1">
+            <h5 class="text-xs font-bold text-white truncate">${item.name}</h5>
+            <span class="text-[10px] font-mono-custom text-[#ff5500]">₹${item.price.toLocaleString('en-IN')} / unit</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="flex items-center gap-1.5 bg-[#161616] border border-[#2a2a2a] rounded-lg px-2 py-0.5">
+            <button type="button" onclick="changeCheckoutQty(${idx}, -1)" class="text-xs text-zinc-400 hover:text-white px-1 font-bold">-</button>
+            <span class="text-xs font-bold font-mono-custom text-white px-1">${item.quantity}</span>
+            <button type="button" onclick="changeCheckoutQty(${idx}, 1)" class="text-xs text-zinc-400 hover:text-white px-1 font-bold">+</button>
+          </div>
+          <span class="text-xs font-black font-mono-custom text-white min-w-[64px] text-right">₹${itemTotal.toLocaleString('en-IN')}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const gst = Math.round(subtotal * 0.18);
+  const grandTotal = subtotal + gst;
+
+  if (totalPayableSpan) {
+    totalPayableSpan.textContent = `₹${grandTotal.toLocaleString('en-IN')}`;
+  }
+}
+
+function changeCheckoutQty(index, delta) {
+  if (!state.checkoutItems || !state.checkoutItems[index]) return;
+  state.checkoutItems[index].quantity += delta;
+  if (state.checkoutItems[index].quantity <= 0) {
+    state.checkoutItems.splice(index, 1);
+  }
+  renderCheckoutSummary();
+}
+
+function handleCheckoutSubmit(e) {
+  e.preventDefault();
+
+  if (!state.checkoutItems || state.checkoutItems.length === 0) {
+    showToast("Please add items to buy before submitting order!");
+    return;
+  }
+
+  const name = document.getElementById("checkout-name")?.value.trim();
+  const phone = document.getElementById("checkout-phone")?.value.trim();
+  const altPhone = document.getElementById("checkout-alt-phone")?.value.trim() || "N/A";
+  const address = document.getElementById("checkout-address")?.value.trim();
+  const city = document.getElementById("checkout-city")?.value.trim();
+  const stateVal = document.getElementById("checkout-state")?.value.trim();
+  const pincode = document.getElementById("checkout-pincode")?.value.trim();
+
+  const paymentRadio = document.querySelector('input[name="payment-method"]:checked');
+  const paymentMethod = paymentRadio ? paymentRadio.value : "Cash on Delivery (COD)";
+
+  const orderId = `NTT-${Date.now().toString().slice(-6)}`;
+
+  let subtotal = state.checkoutItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  let grandTotal = Math.round(subtotal * 1.18);
+
+  // Populate Order Success Modal
+  document.getElementById("success-order-id").textContent = orderId;
+  document.getElementById("success-customer-name").textContent = name;
+  document.getElementById("success-customer-phone").textContent = phone;
+  document.getElementById("success-customer-address").textContent = `${address}, ${city}, ${stateVal} - ${pincode}`;
+  document.getElementById("success-total-amount").textContent = `₹${grandTotal.toLocaleString('en-IN')}`;
+
+  // Build WhatsApp pre-filled text
+  const itemsText = state.checkoutItems.map(i => `• ${i.quantity}x ${i.name} (₹${(i.price * i.quantity).toLocaleString('en-IN')})`).join('\n');
+  const fullAddressStr = `${address}, ${city}, ${stateVal} - ${pincode}`;
+  
+  const waMessage = `*NEW ORDER PLACED!* 🛍️\n\n*Order ID:* ${orderId}\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*Alt Phone:* ${altPhone}\n*Delivery Address:* ${fullAddressStr}\n*Payment Method:* ${paymentMethod}\n\n*ORDERED ITEMS:*\n${itemsText}\n\n*Total Amount Payable:* ₹${grandTotal.toLocaleString('en-IN')} (Incl. GST & Express Shipping)\n\nPlease dispatch this consignment.`;
+  
+  const waBtn = document.getElementById("btn-success-whatsapp");
+  if (waBtn) {
+    waBtn.href = `https://wa.me/918283848559?text=${encodeURIComponent(waMessage)}`;
+  }
+
+  // Clear cart & update UI
   state.cart = [];
   saveCart();
   updateCartBadge();
   closeCartDrawer();
+  closeCheckoutModal();
+
+  // Show Success Modal
+  const successBackdrop = document.getElementById("order-success-backdrop");
+  const successModal = document.getElementById("order-success-modal");
+  if (successBackdrop && successModal) {
+    successBackdrop.classList.add("active");
+    successModal.classList.add("active");
+  }
+
+  showToast(`Order ${orderId} Placed Successfully!`);
+}
+
+function closeOrderSuccessModal() {
+  document.getElementById("order-success-backdrop")?.classList.remove("active");
+  document.getElementById("order-success-modal")?.classList.remove("active");
 }
 
 // --- TOAST NOTIFICATIONS ---
@@ -673,3 +892,245 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 300);
   }, 3500);
 }
+
+// --- OWNER ADMIN PORTAL ENGINE ---
+function openAdminPortal() {
+  if (state.adminAuthenticated) {
+    openAdminDashboard();
+  } else {
+    const backdrop = document.getElementById("admin-pin-backdrop");
+    const modal = document.getElementById("admin-pin-modal");
+    const input = document.getElementById("admin-pin-input");
+    const errorMsg = document.getElementById("admin-pin-error");
+
+    if (errorMsg) errorMsg.classList.add("hidden");
+    if (input) input.value = "";
+    if (backdrop && modal) {
+      backdrop.classList.add("active");
+      modal.classList.add("active");
+      setTimeout(() => input?.focus(), 150);
+    }
+  }
+}
+
+function closeAdminPinModal() {
+  document.getElementById("admin-pin-backdrop")?.classList.remove("active");
+  document.getElementById("admin-pin-modal")?.classList.remove("active");
+}
+
+function handleAdminPinSubmit(e) {
+  e.preventDefault();
+  const inputPin = document.getElementById("admin-pin-input")?.value;
+  const errorMsg = document.getElementById("admin-pin-error");
+
+  if (inputPin === state.adminPasscode) {
+    state.adminAuthenticated = true;
+    closeAdminPinModal();
+    openAdminDashboard();
+    showToast("Admin Session Unlocked! Welcome Owner.");
+  } else {
+    if (errorMsg) errorMsg.classList.remove("hidden");
+  }
+}
+
+function openAdminDashboard() {
+  renderAdminProducts();
+  document.getElementById("admin-backdrop")?.classList.add("active");
+  document.getElementById("admin-modal")?.classList.add("active");
+}
+
+function closeAdminDashboard() {
+  document.getElementById("admin-backdrop")?.classList.remove("active");
+  document.getElementById("admin-modal")?.classList.remove("active");
+}
+
+function renderAdminProducts() {
+  const container = document.getElementById("admin-product-list");
+  const countSpan = document.getElementById("admin-items-count");
+  if (!container) return;
+
+  const filtered = state.products.filter(p => {
+    if (!state.adminSearchQuery) return true;
+    return p.name.toLowerCase().includes(state.adminSearchQuery) ||
+           p.brand.toLowerCase().includes(state.adminSearchQuery) ||
+           p.id.toLowerCase().includes(state.adminSearchQuery);
+  });
+
+  if (countSpan) countSpan.textContent = filtered.length;
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="py-12 text-center text-zinc-500 font-mono-custom text-xs">
+        No inventory items found matching "${state.adminSearchQuery}"
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(product => {
+    return `
+      <div class="admin-product-row flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        
+        <!-- Product Thumbnail & Basic Info -->
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <img src="${product.image}" alt="${product.name}" class="w-12 h-12 object-contain bg-white rounded-lg p-1 border border-zinc-700 shrink-0" />
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-[9px] font-black uppercase text-[#ff5500] font-mono-custom">${product.brand}</span>
+              <span class="text-[9px] font-mono-custom text-zinc-500">${product.id}</span>
+            </div>
+            <h4 class="text-xs font-bold text-white truncate max-w-sm">${product.name}</h4>
+          </div>
+        </div>
+
+        <!-- Editable Prices (Discounted & MRP) -->
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          
+          <div class="flex flex-col">
+            <label class="text-[9px] font-bold text-zinc-400 uppercase font-mono-custom mb-1">Sale Price (₹)</label>
+            <input type="number" id="admin-sale-${product.id}" value="${product.discountedPrice}" class="admin-price-input" min="0" step="10" />
+          </div>
+
+          <div class="flex flex-col">
+            <label class="text-[9px] font-bold text-zinc-400 uppercase font-mono-custom mb-1">MRP (₹)</label>
+            <input type="number" id="admin-mrp-${product.id}" value="${product.originalPrice}" class="admin-price-input text-zinc-400" min="0" step="10" />
+          </div>
+
+          <!-- Stock Toggle -->
+          <div class="flex flex-col">
+            <label class="text-[9px] font-bold text-zinc-400 uppercase font-mono-custom mb-1">Stock</label>
+            <button onclick="toggleProductStock('${product.id}')" class="px-2.5 py-1 rounded text-xs font-bold font-mono-custom ${product.inStock ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-400' : 'bg-red-950/60 border border-red-500/40 text-red-400'}">
+              ${product.inStock ? 'In Stock' : 'Out of Stock'}
+            </button>
+          </div>
+
+          <!-- Save Button -->
+          <button onclick="updateSingleProductPrice('${product.id}')" class="mt-4 md:mt-0 px-4 py-2 bg-[#ff5500] hover:bg-[#ff7a30] text-white text-xs font-black uppercase tracking-wider rounded-lg transition-colors shadow-md active:scale-95 font-mono-custom">
+            Save
+          </button>
+
+        </div>
+
+      </div>
+    `;
+  }).join("");
+}
+
+function updateSingleProductPrice(productId) {
+  const product = state.products.find(p => p.id === productId);
+  if (!product) return;
+
+  const saleInput = document.getElementById(`admin-sale-${productId}`);
+  const mrpInput = document.getElementById(`admin-mrp-${productId}`);
+
+  if (!saleInput || !mrpInput) return;
+
+  const newSalePrice = parseInt(saleInput.value, 10);
+  const newMrpPrice = parseInt(mrpInput.value, 10);
+
+  if (isNaN(newSalePrice) || newSalePrice < 0) {
+    showToast("Invalid Sale Price entered!");
+    return;
+  }
+
+  product.discountedPrice = newSalePrice;
+  if (!isNaN(newMrpPrice) && newMrpPrice >= newSalePrice) {
+    product.originalPrice = newMrpPrice;
+  }
+
+  saveProducts();
+  applyFilters();
+  renderAdminProducts();
+  showToast(`Updated Price for ${product.name.slice(0, 18)}... to ₹${newSalePrice.toLocaleString('en-IN')}!`);
+}
+
+function toggleProductStock(productId) {
+  const product = state.products.find(p => p.id === productId);
+  if (!product) return;
+
+  product.inStock = !product.inStock;
+  saveProducts();
+  applyFilters();
+  renderAdminProducts();
+  showToast(`${product.name.slice(0, 18)}... status: ${product.inStock ? 'In Stock' : 'Out of Stock'}.`);
+}
+
+function resetProductsToDefault() {
+  if (confirm("Reset all product prices and inventory to original factory defaults?")) {
+    state.products = JSON.parse(JSON.stringify(PRODUCTS_DATA));
+    saveProducts();
+    applyFilters();
+    renderAdminProducts();
+    showToast("All product prices reset to factory defaults!");
+  }
+}
+
+// --- ADD TO CART QUANTITY SELECTION MODAL LOGIC ---
+function openQuantityModal(productId) {
+  const product = state.products.find(p => p.id === productId);
+  if (!product) return;
+
+  state.selectedProductForQty = product;
+  state.selectedQtyCount = 1;
+
+  const brandSpan = document.getElementById("qty-modal-product-brand");
+  if (brandSpan) brandSpan.textContent = product.brand;
+
+  const nameH4 = document.getElementById("qty-modal-product-name");
+  if (nameH4) nameH4.textContent = product.name;
+
+  const priceSpan = document.getElementById("qty-modal-product-unit-price");
+  if (priceSpan) priceSpan.textContent = `₹${product.discountedPrice.toLocaleString('en-IN')} / unit`;
+
+  const imgEl = document.getElementById("qty-modal-product-img");
+  if (imgEl) imgEl.src = product.image;
+
+  const qtyInput = document.getElementById("qty-modal-input");
+  if (qtyInput) qtyInput.value = 1;
+
+  updateQtyModalSubtotal();
+
+  const backdrop = document.getElementById("qty-modal-backdrop");
+  const modal = document.getElementById("qty-modal");
+
+  if (backdrop && modal) {
+    backdrop.classList.add("active");
+    modal.classList.add("active");
+  }
+}
+
+function closeQuantityModal() {
+  document.getElementById("qty-modal-backdrop")?.classList.remove("active");
+  document.getElementById("qty-modal")?.classList.remove("active");
+}
+
+function changeQtyCount(delta) {
+  state.selectedQtyCount = Math.max(1, state.selectedQtyCount + delta);
+  const qtyInput = document.getElementById("qty-modal-input");
+  if (qtyInput) qtyInput.value = state.selectedQtyCount;
+  updateQtyModalSubtotal();
+}
+
+function setQtyPreset(count) {
+  state.selectedQtyCount = count;
+  const qtyInput = document.getElementById("qty-modal-input");
+  if (qtyInput) qtyInput.value = count;
+  updateQtyModalSubtotal();
+}
+
+function updateQtyModalSubtotal() {
+  if (!state.selectedProductForQty) return;
+  const total = state.selectedProductForQty.discountedPrice * state.selectedQtyCount;
+  const subtotalSpan = document.getElementById("qty-modal-subtotal");
+  if (subtotalSpan) {
+    subtotalSpan.textContent = `₹${total.toLocaleString('en-IN')}`;
+  }
+}
+
+function confirmAddToCart() {
+  if (!state.selectedProductForQty) return;
+  addToCart(state.selectedProductForQty.id, state.selectedQtyCount);
+  closeQuantityModal();
+}
+
+
