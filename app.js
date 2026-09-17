@@ -197,17 +197,37 @@ const state = {
   selectedProductForCall: null,
   selectedProductForView: null,
   selectedProductForQty: null,
-  selectedQtyCount: 1,
-  adminAuthenticated: false,
-  adminPasscode: "1998"
+  selectedQtyCount: 1
 };
+
+// Helper: resolve link paths on file:// protocol for local browsing
+function resolveLinksForFileProtocol() {
+  if (window.location.protocol === "file:") {
+    const isSubdir = window.location.pathname.includes("/products/") ||
+                     window.location.pathname.includes("/about/") ||
+                     window.location.pathname.includes("/contact/") ||
+                     window.location.pathname.includes("/admin/");
+    const prefix = isSubdir ? "../" : "";
+    document.querySelectorAll("a[href^='/']").forEach(a => {
+      const path = a.getAttribute("href");
+      if (path === "/") a.href = prefix + "index.html";
+      else if (path === "/products") a.href = prefix + "products/index.html";
+      else if (path === "/about") a.href = prefix + "about/index.html";
+      else if (path === "/contact") a.href = prefix + "contact/index.html";
+      else if (path === "/admin") a.href = prefix + "admin/index.html";
+    });
+  }
+}
 
 // --- INITIALIZATION ENGINE ---
 document.addEventListener("DOMContentLoaded", () => {
+  resolveLinksForFileProtocol();
   loadSavedProducts();
   loadSavedCart();
   setupEventListeners();
   renderProducts();
+  renderFeaturedProducts();
+  renderAdminProducts();
   updateCartBadge();
 
   // Dismiss Opening Splash Screen smoothly after initial load
@@ -216,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (splash) {
       splash.classList.add("fade-out");
     }
-  }, 1100);
+  }, 900);
 });
 
 // Load products from localStorage or fallback to defaults
@@ -326,14 +346,6 @@ function setupEventListeners() {
   // Order Success Modal listeners
   document.getElementById("btn-close-order-success")?.addEventListener("click", closeOrderSuccessModal);
   document.getElementById("order-success-backdrop")?.addEventListener("click", closeOrderSuccessModal);
-
-  // Owner Admin Portal Listeners
-  document.getElementById("btn-open-admin")?.addEventListener("click", openAdminPortal);
-  document.getElementById("btn-close-admin-pin")?.addEventListener("click", closeAdminPinModal);
-  document.getElementById("admin-pin-backdrop")?.addEventListener("click", closeAdminPinModal);
-  document.getElementById("admin-pin-form")?.addEventListener("submit", handleAdminPinSubmit);
-  document.getElementById("btn-close-admin-dashboard")?.addEventListener("click", closeAdminDashboard);
-  document.getElementById("admin-backdrop")?.addEventListener("click", closeAdminDashboard);
 
   // Admin Inventory Search
   const adminSearchInput = document.getElementById("admin-search-input");
@@ -465,6 +477,62 @@ function clearAllFilters() {
 
   applyFilters();
 }
+
+// --- RENDER FEATURED PRODUCTS (HOME PAGE PREVIEW) ---
+function renderFeaturedProducts() {
+  const gridContainer = document.getElementById("featured-products-grid");
+  if (!gridContainer) return;
+
+  const featured = state.products.slice(0, 4);
+  gridContainer.innerHTML = featured.map((product, index) => {
+    const savings = product.originalPrice - product.discountedPrice;
+    const delayClass = index < 4 ? `delay-${(index + 1) * 100}` : '';
+
+    return `
+      <div class="product-card rounded-2xl p-4 flex flex-col justify-between relative shadow-lg animate-scale-in ${delayClass}">
+        <div>
+          <div class="product-card-img-wrapper aspect-4/3 mb-4 p-4 flex items-center justify-center cursor-pointer bg-white rounded-xl" onclick="openViewModal('${product.id}')">
+            <img src="${product.image}" alt="${product.name}" class="max-h-full max-w-full object-contain" />
+            ${savings > 0 ? `
+              <span class="absolute top-2 right-2 bg-[#ff5500] text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-md">
+                Save ₹${savings.toLocaleString('en-IN')}
+              </span>
+            ` : ''}
+          </div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-black uppercase tracking-widest text-[#ff5500] font-mono-custom">${product.brand}</span>
+            <div class="flex items-center gap-1 bg-[#121212] px-2 py-0.5 rounded-md border border-[#2a2a2a]">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="#ff5500" stroke="#ff5500"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span class="text-[10px] font-bold text-zinc-300 font-mono-custom">${product.rating}</span>
+            </div>
+          </div>
+          <h3 class="text-sm font-bold text-white leading-snug mb-3 line-clamp-2 cursor-pointer hover:text-[#ff5500] transition-colors" onclick="openViewModal('${product.id}')">
+            ${product.name}
+          </h3>
+        </div>
+        <div class="pt-3 border-t border-[#2a2a2a]">
+          <div class="flex items-baseline gap-2 mb-3">
+            <span class="text-lg font-black text-white tracking-tight font-mono-custom">₹${product.discountedPrice.toLocaleString('en-IN')}</span>
+            ${product.originalPrice > product.discountedPrice ? `
+              <span class="text-xs font-semibold text-zinc-500 line-through font-mono-custom">₹${product.originalPrice.toLocaleString('en-IN')}</span>
+            ` : ''}
+          </div>
+          <div class="action-buttons-group">
+            <button class="btn-cart animate-squish" onclick="addToCart('${product.id}', 1)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              <span>Add Cart</span>
+            </button>
+            <button class="btn-buy-now animate-squish animate-wiggle" onclick="openCheckoutModal('${product.id}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              <span>Buy Now</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
 
 // --- CALL NOW MODAL LOGIC (User Request) ---
 function openCallModal(productId) {
@@ -666,9 +734,9 @@ function renderCartDrawer() {
         <svg class="mb-4 opacity-40 text-[#ff5500]" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         <p class="font-black uppercase text-sm tracking-wider text-white font-display mb-2">Your bag is empty</p>
         <p class="text-xs text-zinc-400 mb-6 font-medium">Explore genuine pro-grade industrial machinery and tools.</p>
-        <button onclick="closeCartDrawer(); window.location.hash='#catalog-section';" class="btn-orange text-xs font-black uppercase tracking-widest px-6 py-3 rounded-xl shadow-lg active:scale-95">
+        <a href="/products" onclick="closeCartDrawer();" class="btn-orange text-xs font-black uppercase tracking-widest px-6 py-3 rounded-xl shadow-lg active:scale-95 inline-block">
           Explore Products
-        </button>
+        </a>
       </div>
     `;
     if (subtotalSpan) subtotalSpan.textContent = "₹0";
@@ -827,8 +895,7 @@ function handleCheckoutSubmit(e) {
   const stateVal = document.getElementById("checkout-state")?.value.trim();
   const pincode = document.getElementById("checkout-pincode")?.value.trim();
 
-  const paymentRadio = document.querySelector('input[name="payment-method"]:checked');
-  const paymentMethod = paymentRadio ? paymentRadio.value : "Cash on Delivery (COD)";
+  const paymentMethod = "Cash on Delivery (COD)";
 
   const orderId = `NTT-${Date.now().toString().slice(-6)}`;
 
@@ -846,7 +913,7 @@ function handleCheckoutSubmit(e) {
   const itemsText = state.checkoutItems.map(i => `• ${i.quantity}x ${i.name} (₹${(i.price * i.quantity).toLocaleString('en-IN')})`).join('\n');
   const fullAddressStr = `${address}, ${city}, ${stateVal} - ${pincode}`;
   
-  const waMessage = `*NEW ORDER PLACED!* 🛍️\n\n*Order ID:* ${orderId}\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*Alt Phone:* ${altPhone}\n*Delivery Address:* ${fullAddressStr}\n*Payment Method:* ${paymentMethod}\n\n*ORDERED ITEMS:*\n${itemsText}\n\n*Total Amount Payable:* ₹${grandTotal.toLocaleString('en-IN')} (Incl. GST & Express Shipping)\n\nPlease dispatch this consignment.`;
+  const waMessage = `*NEW ORDER PLACED!* 🛍️\n\n*Order ID:* ${orderId}\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*Alt Phone:* ${altPhone}\n*Delivery Address:* ${fullAddressStr}\n*Payment Method:* Cash on Delivery (COD)\n\n*ORDERED ITEMS:*\n${itemsText}\n\n*Total Amount Payable:* ₹${grandTotal.toLocaleString('en-IN')} (Incl. GST & Express Shipping)\n\nPlease dispatch this consignment via Cash on Delivery.`;
   
   const waBtn = document.getElementById("btn-success-whatsapp");
   if (waBtn) {
@@ -897,61 +964,23 @@ function showToast(message) {
   }, 3500);
 }
 
-// --- OWNER ADMIN PORTAL ENGINE ---
-function openAdminPortal() {
-  if (state.adminAuthenticated) {
-    openAdminDashboard();
-  } else {
-    const backdrop = document.getElementById("admin-pin-backdrop");
-    const modal = document.getElementById("admin-pin-modal");
-    const input = document.getElementById("admin-pin-input");
-    const errorMsg = document.getElementById("admin-pin-error");
-
-    if (errorMsg) errorMsg.classList.add("hidden");
-    if (input) input.value = "";
-    if (backdrop && modal) {
-      backdrop.classList.add("active");
-      modal.classList.add("active");
-      setTimeout(() => input?.focus(), 150);
-    }
-  }
-}
-
-function closeAdminPinModal() {
-  document.getElementById("admin-pin-backdrop")?.classList.remove("active");
-  document.getElementById("admin-pin-modal")?.classList.remove("active");
-}
-
-function handleAdminPinSubmit(e) {
-  e.preventDefault();
-  const inputPin = document.getElementById("admin-pin-input")?.value;
-  const errorMsg = document.getElementById("admin-pin-error");
-
-  if (inputPin === state.adminPasscode) {
-    state.adminAuthenticated = true;
-    closeAdminPinModal();
-    openAdminDashboard();
-    showToast("Admin Session Unlocked! Welcome Owner.");
-  } else {
-    if (errorMsg) errorMsg.classList.remove("hidden");
-  }
-}
-
-function openAdminDashboard() {
-  renderAdminProducts();
-  document.getElementById("admin-backdrop")?.classList.add("active");
-  document.getElementById("admin-modal")?.classList.add("active");
-}
-
-function closeAdminDashboard() {
-  document.getElementById("admin-backdrop")?.classList.remove("active");
-  document.getElementById("admin-modal")?.classList.remove("active");
-}
-
+// --- OWNER ADMIN DASHBOARD ENGINE (Direct Full Dashboard, Zero PIN Gate) ---
 function renderAdminProducts() {
   const container = document.getElementById("admin-product-list");
-  const countSpan = document.getElementById("admin-items-count");
   if (!container) return;
+
+  const totalCountSpan = document.getElementById("admin-total-count");
+  const inStockCountSpan = document.getElementById("admin-instock-count");
+  const outStockCountSpan = document.getElementById("admin-outstock-count");
+  const itemsCountSpan = document.getElementById("admin-items-count");
+
+  const totalCount = state.products.length;
+  const inStockCount = state.products.filter(p => p.inStock).length;
+  const outStockCount = totalCount - inStockCount;
+
+  if (totalCountSpan) totalCountSpan.textContent = totalCount;
+  if (inStockCountSpan) inStockCountSpan.textContent = inStockCount;
+  if (outStockCountSpan) outStockCountSpan.textContent = outStockCount;
 
   const filtered = state.products.filter(p => {
     if (!state.adminSearchQuery) return true;
@@ -960,11 +989,11 @@ function renderAdminProducts() {
            p.id.toLowerCase().includes(state.adminSearchQuery);
   });
 
-  if (countSpan) countSpan.textContent = filtered.length;
+  if (itemsCountSpan) itemsCountSpan.textContent = filtered.length;
 
   if (filtered.length === 0) {
     container.innerHTML = `
-      <div class="py-12 text-center text-zinc-500 font-mono-custom text-xs">
+      <div class="py-16 text-center text-zinc-500 font-mono-custom text-xs">
         No inventory items found matching "${state.adminSearchQuery}"
       </div>
     `;
@@ -973,48 +1002,45 @@ function renderAdminProducts() {
 
   container.innerHTML = filtered.map(product => {
     return `
-      <div class="admin-product-row flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        
-        <!-- Product Thumbnail & Basic Info -->
+      <div class="admin-product-row flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 bg-[#161616] border border-[#2a2a2a] rounded-xl hover:border-[#ff5500]/50 transition-colors">
         <div class="flex items-center gap-3 flex-1 min-w-0">
-          <img src="${product.image}" alt="${product.name}" class="w-12 h-12 object-contain bg-white rounded-lg p-1 border border-zinc-700 shrink-0" />
+          <img src="${product.image}" alt="${product.name}" class="w-14 h-14 object-contain bg-white rounded-lg p-1.5 border border-zinc-700 shrink-0" />
           <div class="min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="text-[9px] font-black uppercase text-[#ff5500] font-mono-custom">${product.brand}</span>
-              <span class="text-[9px] font-mono-custom text-zinc-500">${product.id}</span>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[10px] font-black uppercase text-[#ff5500] font-mono-custom bg-[#ff5500]/10 px-2 py-0.5 rounded border border-[#ff5500]/20">${product.brand}</span>
+              <span class="text-[10px] font-mono-custom text-zinc-500">${product.id}</span>
+              <span class="text-[10px] font-mono-custom text-zinc-400 capitalize hidden sm:inline">(${product.categoryName})</span>
             </div>
-            <h4 class="text-xs font-bold text-white truncate max-w-sm">${product.name}</h4>
+            <h4 class="text-xs font-bold text-white truncate max-w-md">${product.name}</h4>
           </div>
         </div>
 
-        <!-- Editable Prices (Discounted & MRP) -->
-        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          
+        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto pt-3 lg:pt-0 border-t lg:border-t-0 border-[#2a2a2a]">
           <div class="flex flex-col">
             <label class="text-[9px] font-bold text-zinc-400 uppercase font-mono-custom mb-1">Sale Price (₹)</label>
-            <input type="number" id="admin-sale-${product.id}" value="${product.discountedPrice}" class="admin-price-input" min="0" step="10" />
+            <input type="number" id="admin-sale-${product.id}" value="${product.discountedPrice}" class="admin-price-input w-28 bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#ff5500] rounded-lg px-3 py-1.5 text-white text-xs font-mono-custom font-bold focus:outline-none" min="0" step="10" />
           </div>
 
           <div class="flex flex-col">
             <label class="text-[9px] font-bold text-zinc-400 uppercase font-mono-custom mb-1">MRP (₹)</label>
-            <input type="number" id="admin-mrp-${product.id}" value="${product.originalPrice}" class="admin-price-input text-zinc-400" min="0" step="10" />
+            <input type="number" id="admin-mrp-${product.id}" value="${product.originalPrice}" class="admin-price-input w-28 bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#ff5500] rounded-lg px-3 py-1.5 text-zinc-400 text-xs font-mono-custom font-bold focus:outline-none" min="0" step="10" />
           </div>
 
-          <!-- Stock Toggle -->
           <div class="flex flex-col">
-            <label class="text-[9px] font-bold text-zinc-400 uppercase font-mono-custom mb-1">Stock</label>
-            <button onclick="toggleProductStock('${product.id}')" class="px-2.5 py-1 rounded text-xs font-bold font-mono-custom ${product.inStock ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-400' : 'bg-red-950/60 border border-red-500/40 text-red-400'}">
-              ${product.inStock ? 'In Stock' : 'Out of Stock'}
+            <label class="text-[9px] font-bold text-zinc-400 uppercase font-mono-custom mb-1">Stock Status</label>
+            <button onclick="toggleProductStock('${product.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold font-mono-custom transition-all ${product.inStock ? 'bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/80' : 'bg-red-950/70 border border-red-500/40 text-red-400 hover:bg-red-900/80'}">
+              ${product.inStock ? '● In Stock' : '○ Out of Stock'}
             </button>
           </div>
 
-          <!-- Save Button -->
-          <button onclick="updateSingleProductPrice('${product.id}')" class="mt-4 md:mt-0 px-4 py-2 bg-[#ff5500] hover:bg-[#ff7a30] text-white text-xs font-black uppercase tracking-wider rounded-lg transition-colors shadow-md active:scale-95 font-mono-custom">
-            Save
-          </button>
-
+          <div class="flex flex-col justify-end">
+            <label class="text-[9px] font-bold text-transparent font-mono-custom mb-1">Action</label>
+            <button onclick="updateSingleProductPrice('${product.id}')" class="px-4 py-1.5 bg-[#ff5500] hover:bg-[#ff7a30] text-white text-xs font-black uppercase tracking-wider rounded-lg transition-all shadow-md active:scale-95 font-mono-custom flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Save</span>
+            </button>
+          </div>
         </div>
-
       </div>
     `;
   }).join("");
@@ -1160,5 +1186,7 @@ window.closeOrderSuccessModal = closeOrderSuccessModal;
 window.resetProductsToDefault = resetProductsToDefault;
 window.toggleProductStock = toggleProductStock;
 window.updateSingleProductPrice = updateSingleProductPrice;
+window.clearAllFilters = clearAllFilters;
+window.renderAdminProducts = renderAdminProducts;
 
 
