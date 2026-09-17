@@ -427,11 +427,11 @@ function renderProducts() {
             ` : ''}
           </div>
 
-          <!-- DUAL SIDE-BY-SIDE BUTTONS: ADD TO CART & CALL NOW -->
+          <!-- DUAL SIDE-BY-SIDE BUTTONS: ADD TO CART & BUY NOW -->
           <div class="action-buttons-group">
-            <button class="btn-cart animate-squish" onclick="openQuantityModal('${product.id}')">
+            <button class="btn-cart animate-squish" onclick="addToCart('${product.id}', 1)">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-              <span>Cart</span>
+              <span>Add Cart</span>
             </button>
             
             <button class="btn-buy-now animate-squish animate-wiggle" onclick="openCheckoutModal('${product.id}')">
@@ -603,6 +603,7 @@ function addToCart(productId, quantity = 1) {
   saveCart();
   updateCartBadge();
   renderCartDrawer();
+  openCartDrawer();
   showToast(`Added ${numQty}x "${product.name.slice(0, 20)}..." to cart!`);
 }
 
@@ -1132,5 +1133,29 @@ function confirmAddToCart() {
   addToCart(state.selectedProductForQty.id, state.selectedQtyCount);
   closeQuantityModal();
 }
+
+// --- EXPOSE GLOBAL FUNCTIONS TO WINDOW OBJECT ---
+window.addToCart = addToCart;
+window.openCheckoutModal = openCheckoutModal;
+window.closeCheckoutModal = closeCheckoutModal;
+window.openQuantityModal = openQuantityModal;
+window.closeQuantityModal = closeQuantityModal;
+window.changeQtyCount = changeQtyCount;
+window.setQtyPreset = setQtyPreset;
+window.updateQtyModalSubtotal = updateQtyModalSubtotal;
+window.confirmAddToCart = confirmAddToCart;
+window.openViewModal = openViewModal;
+window.closeViewModal = closeViewModal;
+window.openCallModal = openCallModal;
+window.closeCallModal = closeCallModal;
+window.openCartDrawer = openCartDrawer;
+window.closeCartDrawer = closeCartDrawer;
+window.removeFromCart = removeFromCart;
+window.updateQuantity = updateQuantity;
+window.changeCheckoutQty = changeCheckoutQty;
+window.closeOrderSuccessModal = closeOrderSuccessModal;
+window.resetProductsToDefault = resetProductsToDefault;
+window.toggleProductStock = toggleProductStock;
+window.updateSingleProductPrice = updateSingleProductPrice;
 
 
