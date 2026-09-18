@@ -228,6 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderProducts();
   renderFeaturedProducts();
   renderAdminProducts();
+  initAddProductForm();
   updateCartBadge();
 
   // Dismiss Opening Splash Screen smoothly after initial load
@@ -1091,8 +1092,395 @@ function resetProductsToDefault() {
     saveProducts();
     applyFilters();
     renderAdminProducts();
+    initAddProductForm();
     showToast("All product prices reset to factory defaults!");
   }
+}
+
+// --- OWNER ADMIN: ADD NEW PRODUCT & MEDIA CAPTURE ENGINE ---
+let addProductInStock = true;
+let addProductStockManualOverride = false;
+let currentProductImageBase64 = "";
+let webcamStream = null;
+
+function initAddProductForm() {
+  const form = document.getElementById("add-product-form");
+  if (!form) return;
+
+  autoSuggestSkuField();
+  populateAdminCategoryDropdown();
+  updateAddProductStockUI();
+}
+
+function suggestNextSku() {
+  let maxNum = 0;
+  if (state.products && state.products.length > 0) {
+    state.products.forEach(p => {
+      if (!p || !p.id) return;
+      const match = String(p.id).match(/^ntt-(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+      }
+    });
+  }
+  const nextNum = maxNum + 1;
+  return `ntt-${String(nextNum).padStart(3, "0")}`;
+}
+
+function autoSuggestSkuField() {
+  const skuInput = document.getElementById("add-product-sku");
+  if (skuInput) {
+    skuInput.value = suggestNextSku();
+  }
+}
+
+function populateAdminCategoryDropdown() {
+  const select = document.getElementById("add-product-category");
+  if (!select) return;
+
+  const categoriesMap = new Map();
+  categoriesMap.set("power-tools", "Power Tools");
+  categoriesMap.set("welding", "Welding Equipment");
+  categoriesMap.set("hand-tools", "Hand Tools");
+  categoriesMap.set("measuring", "Measuring & Precision");
+  categoriesMap.set("abrasives", "Cutting & Abrasives");
+
+  if (state.products) {
+    state.products.forEach(p => {
+      if (p.category && p.categoryName) {
+        categoriesMap.set(p.category, p.categoryName);
+      }
+    });
+  }
+
+  const currentVal = select.value || "power-tools";
+  select.innerHTML = Array.from(categoriesMap.entries()).map(([slug, name]) => {
+    return `<option value="${slug}" data-name="${name}">${name}</option>`;
+  }).join("") + `<option value="__new__">+ Add New Category...</option>`;
+
+  if (currentVal && typeof select.querySelector === "function" && select.querySelector(`option[value="${currentVal}"]`)) {
+    select.value = currentVal;
+  }
+}
+
+function onCategorySelectChange(selectEl) {
+  const customInput = document.getElementById("add-product-custom-category");
+  if (!customInput) return;
+  if (selectEl.value === "__new__") {
+    customInput.classList.remove("hidden");
+    customInput.focus();
+  } else {
+    customInput.classList.add("hidden");
+    customInput.value = "";
+  }
+}
+
+function onStockQuantityChange(val) {
+  const qty = parseInt(val, 10);
+  if (!addProductStockManualOverride) {
+    addProductInStock = !isNaN(qty) && qty > 0;
+    updateAddProductStockUI();
+  }
+}
+
+function toggleAddProductStockStatus() {
+  addProductStockManualOverride = true;
+  addProductInStock = !addProductInStock;
+  updateAddProductStockUI();
+}
+
+function updateAddProductStockUI() {
+  const btn = document.getElementById("add-product-stock-btn");
+  const dot = document.getElementById("add-product-stock-dot");
+  const label = document.getElementById("add-product-stock-label");
+  if (!btn || !dot || !label) return;
+
+  if (addProductInStock) {
+    btn.className = "w-full py-2.5 px-4 rounded-xl text-xs font-bold font-mono-custom transition-all bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/80 flex items-center justify-center gap-2";
+    dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+    label.textContent = "● In Stock";
+  } else {
+    btn.className = "w-full py-2.5 px-4 rounded-xl text-xs font-bold font-mono-custom transition-all bg-red-950/70 border border-red-500/40 text-red-400 hover:bg-red-900/80 flex items-center justify-center gap-2";
+    dot.className = "w-2 h-2 rounded-full bg-red-400";
+    label.textContent = "○ Out of Stock";
+  }
+}
+
+function handleProductImageFile(file) {
+  if (!file) return;
+  if (!file.type || !file.type.startsWith("image/")) {
+    showToast("Please select a valid image file!");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Downscale to max 800px on canvas to keep base64 within localStorage limits (~50-80KB)
+      const maxDim = 800;
+      let width = img.width;
+      let height = img.height;
+      if (width > height && width > maxDim) {
+        height = Math.round((height * maxDim) / width);
+        width = maxDim;
+      } else if (height > maxDim) {
+        width = Math.round((width * maxDim) / height);
+        height = maxDim;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      currentProductImageBase64 = canvas.toDataURL("image/jpeg", 0.82);
+      showProductImagePreview(
+        currentProductImageBase64,
+        file.name || "uploaded-tool.jpg",
+        `${Math.round((currentProductImageBase64.length * 0.75) / 1024)} KB`
+      );
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function showProductImagePreview(dataUrl, name, sizeText) {
+  currentProductImageBase64 = dataUrl;
+  const card = document.getElementById("image-preview-card");
+  const thumb = document.getElementById("image-preview-thumb");
+  const nameEl = document.getElementById("preview-filename");
+  const sizeEl = document.getElementById("preview-filesize");
+  const removeBtn = document.getElementById("remove-preview-btn");
+  const badge = document.getElementById("image-status-badge");
+
+  if (card && thumb) {
+    thumb.src = dataUrl;
+    if (nameEl) nameEl.textContent = name;
+    if (sizeEl) sizeEl.textContent = sizeText || "Ready to save";
+    card.classList.remove("hidden");
+    if (removeBtn) removeBtn.classList.remove("hidden");
+    if (badge) {
+      badge.textContent = "Image Ready";
+      badge.className = "text-[9px] font-mono-custom uppercase font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-500/30 px-2 py-0.5 rounded";
+    }
+  }
+}
+
+function removeProductImagePreview() {
+  currentProductImageBase64 = "";
+  const card = document.getElementById("image-preview-card");
+  const removeBtn = document.getElementById("remove-preview-btn");
+  const badge = document.getElementById("image-status-badge");
+  const fileInput = document.getElementById("add-product-file-input");
+  const cameraInput = document.getElementById("add-product-camera-input");
+
+  if (card) card.classList.add("hidden");
+  if (removeBtn) removeBtn.classList.add("hidden");
+  if (fileInput) fileInput.value = "";
+  if (cameraInput) cameraInput.value = "";
+  if (badge) {
+    badge.textContent = "No Image Selected";
+    badge.className = "text-[9px] font-mono-custom uppercase font-bold text-zinc-500 bg-zinc-900 border border-[#2a2a2a] px-2 py-0.5 rounded";
+  }
+}
+
+function triggerCameraCapture() {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (isMobile) {
+    const cameraInput = document.getElementById("add-product-camera-input");
+    if (cameraInput) cameraInput.click();
+    return;
+  }
+
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    openWebcamModal();
+  } else {
+    const cameraInput = document.getElementById("add-product-camera-input");
+    if (cameraInput) cameraInput.click();
+  }
+}
+
+function openWebcamModal() {
+  const modal = document.getElementById("webcam-modal-backdrop");
+  const video = document.getElementById("webcam-video");
+  if (!modal || !video) return;
+
+  modal.classList.remove("hidden");
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+    .then(stream => {
+      webcamStream = stream;
+      video.srcObject = stream;
+      video.play();
+    })
+    .catch(err => {
+      console.warn("Desktop webcam unavailable, fallback to camera file input", err);
+      closeWebcamModal();
+      const cameraInput = document.getElementById("add-product-camera-input");
+      if (cameraInput) cameraInput.click();
+    });
+}
+
+function closeWebcamModal() {
+  const modal = document.getElementById("webcam-modal-backdrop");
+  const video = document.getElementById("webcam-video");
+  if (modal) modal.classList.add("hidden");
+  if (webcamStream) {
+    webcamStream.getTracks().forEach(track => track.stop());
+    webcamStream = null;
+  }
+  if (video) video.srcObject = null;
+}
+
+function captureWebcamSnapshot() {
+  const video = document.getElementById("webcam-video");
+  const canvas = document.getElementById("webcam-canvas");
+  if (!video || !canvas) return;
+
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  currentProductImageBase64 = canvas.toDataURL("image/jpeg", 0.82);
+  showProductImagePreview(
+    currentProductImageBase64,
+    "camera-snapshot.jpg",
+    `${Math.round((currentProductImageBase64.length * 0.75) / 1024)} KB`
+  );
+  closeWebcamModal();
+}
+
+function handleAddNewProduct(e) {
+  if (e) e.preventDefault();
+
+  const titleInput = document.getElementById("add-product-title");
+  const brandInput = document.getElementById("add-product-brand");
+  const skuInput = document.getElementById("add-product-sku");
+  const categorySelect = document.getElementById("add-product-category");
+  const customCategoryInput = document.getElementById("add-product-custom-category");
+  const salePriceInput = document.getElementById("add-product-sale-price");
+  const mrpInput = document.getElementById("add-product-mrp");
+  const quantityInput = document.getElementById("add-product-quantity");
+  const descInput = document.getElementById("add-product-desc");
+
+  const title = (titleInput?.value || "").trim();
+  const brand = (brandInput?.value || "").trim();
+  const sku = (skuInput?.value || "").trim();
+  const salePrice = parseInt(salePriceInput?.value, 10);
+  const mrp = parseInt(mrpInput?.value, 10);
+  const quantity = parseInt(quantityInput?.value, 10);
+  const description = (descInput?.value || "").trim();
+
+  // Validate required fields
+  if (!title) {
+    showToast("Product Title is required!");
+    titleInput?.focus();
+    return;
+  }
+  if (!brand) {
+    showToast("Brand is required!");
+    brandInput?.focus();
+    return;
+  }
+  if (!sku) {
+    showToast("SKU is required!");
+    skuInput?.focus();
+    return;
+  }
+  if (isNaN(salePrice) || salePrice <= 0) {
+    showToast("Please enter a valid Sale Price greater than 0!");
+    salePriceInput?.focus();
+    return;
+  }
+  if (isNaN(quantity) || quantity < 0) {
+    showToast("Please enter a valid non-negative Quantity!");
+    quantityInput?.focus();
+    return;
+  }
+
+  // Check duplicate SKU
+  const existingProductIndex = state.products.findIndex(p => p.id.toLowerCase() === sku.toLowerCase());
+  if (existingProductIndex !== -1) {
+    if (!confirm(`Product with SKU "${sku}" already exists. Overwrite this item?`)) {
+      return;
+    }
+  }
+
+  // Category resolution
+  let categorySlug = categorySelect?.value || "power-tools";
+  const selectedOption = categorySelect?.selectedOptions ? categorySelect.selectedOptions[0] : null;
+  let categoryName = selectedOption?.getAttribute("data-name") || "Power Tools";
+
+  if (categorySlug === "__new__") {
+    const customName = (customCategoryInput?.value || "").trim();
+    if (!customName) {
+      showToast("Please enter a name for the new category!");
+      customCategoryInput?.focus();
+      return;
+    }
+    categoryName = customName;
+    categorySlug = customName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  }
+
+  // Fallback image if none provided
+  const image = currentProductImageBase64 || "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=600&q=80";
+  const finalMrp = (!isNaN(mrp) && mrp >= salePrice) ? mrp : salePrice;
+
+  const newProduct = {
+    id: sku,
+    name: title,
+    category: categorySlug,
+    categoryName: categoryName,
+    brand: brand.toUpperCase(),
+    originalPrice: finalMrp,
+    discountedPrice: salePrice,
+    rating: 5.0,
+    reviewsCount: 1,
+    image: image,
+    description: description || `${brand.toUpperCase()} industrial grade ${title}. Designed for professional reliability and high-durability performance.`,
+    specs: {
+      "SKU": sku,
+      "Brand": brand.toUpperCase(),
+      "Category": categoryName,
+      "Availability": addProductInStock ? "In Stock" : "Out of Stock",
+      "Stock Units": String(quantity)
+    },
+    inStock: addProductInStock,
+    quantity: quantity
+  };
+
+  if (existingProductIndex !== -1) {
+    state.products[existingProductIndex] = newProduct;
+  } else {
+    state.products.unshift(newProduct);
+  }
+
+  saveProducts();
+  applyFilters();
+  renderAdminProducts();
+  populateAdminCategoryDropdown();
+
+  showToast(`Product "${title.slice(0, 18)}..." (${sku}) added to catalog!`);
+  resetAddProductForm();
+}
+
+function resetAddProductForm() {
+  const form = document.getElementById("add-product-form");
+  if (form) form.reset();
+
+  removeProductImagePreview();
+  addProductInStock = true;
+  addProductStockManualOverride = false;
+  updateAddProductStockUI();
+
+  const customCat = document.getElementById("add-product-custom-category");
+  if (customCat && customCat.classList) customCat.classList.add("hidden");
+
+  autoSuggestSkuField();
 }
 
 // --- ADD TO CART QUANTITY SELECTION MODAL LOGIC ---
@@ -1188,5 +1576,26 @@ window.toggleProductStock = toggleProductStock;
 window.updateSingleProductPrice = updateSingleProductPrice;
 window.clearAllFilters = clearAllFilters;
 window.renderAdminProducts = renderAdminProducts;
+window.initAddProductForm = initAddProductForm;
+window.suggestNextSku = suggestNextSku;
+window.autoSuggestSkuField = autoSuggestSkuField;
+window.populateAdminCategoryDropdown = populateAdminCategoryDropdown;
+window.onCategorySelectChange = onCategorySelectChange;
+window.onStockQuantityChange = onStockQuantityChange;
+window.toggleAddProductStockStatus = toggleAddProductStockStatus;
+window.handleProductImageFile = handleProductImageFile;
+window.showProductImagePreview = showProductImagePreview;
+window.removeProductImagePreview = removeProductImagePreview;
+window.triggerCameraCapture = triggerCameraCapture;
+window.openWebcamModal = openWebcamModal;
+window.closeWebcamModal = closeWebcamModal;
+window.captureWebcamSnapshot = captureWebcamSnapshot;
+window.handleAddNewProduct = handleAddNewProduct;
+window.resetAddProductForm = resetAddProductForm;
+window.state = state;
+window.PRODUCTS_DATA = PRODUCTS_DATA;
+window.loadSavedProducts = loadSavedProducts;
+window.saveProducts = saveProducts;
+window.applyFilters = applyFilters;
 
 

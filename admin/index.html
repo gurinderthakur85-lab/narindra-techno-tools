@@ -111,6 +111,145 @@
         </div>
       </div>
 
+      <!-- ================= ADD NEW PRODUCT PANEL ================= -->
+      <div class="glass-card rounded-2xl border border-[#2a2a2a] overflow-hidden p-4 sm:p-6 shadow-2xl">
+        <div class="flex items-center justify-between pb-4 mb-6 border-b border-[#2a2a2a]">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-[#ff5500]/10 border border-[#ff5500]/30 flex items-center justify-center text-[#ff5500]">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            </div>
+            <div>
+              <h3 class="text-base font-black uppercase text-white font-display">Add New Product</h3>
+              <p class="text-[11px] text-zinc-400 font-mono-custom">Create and publish new equipment directly to customer store catalog.</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono-custom text-[#ff5500] uppercase font-bold bg-[#ff5500]/10 border border-[#ff5500]/30 px-2.5 py-1 rounded-full hidden sm:inline">
+            Realtime Catalog Sync
+          </span>
+        </div>
+
+        <form id="add-product-form" onsubmit="handleAddNewProduct(event)" class="space-y-5">
+          <!-- Row 1: Title & Brand -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+              <label for="add-product-title" class="text-[10px] font-bold text-zinc-400 uppercase font-mono-custom mb-1.5 block">Product Title <span class="text-[#ff5500]">*</span></label>
+              <input type="text" id="add-product-title" placeholder="e.g. Bosch GDC 120 Professional Marble Cutter" required class="w-full bg-[#161616] border border-[#2a2a2a] focus:border-[#ff5500] rounded-xl px-4 py-2.5 text-white text-xs font-medium focus:outline-none placeholder:text-zinc-600 transition-colors" />
+            </div>
+            <div>
+              <label for="add-product-brand" class="text-[10px] font-bold text-zinc-400 uppercase font-mono-custom mb-1.5 block">Brand <span class="text-[#ff5500]">*</span></label>
+              <input type="text" id="add-product-brand" placeholder="e.g. BOSCH, MAKITA, DEWALT" required class="w-full bg-[#161616] border border-[#2a2a2a] focus:border-[#ff5500] rounded-xl px-4 py-2.5 text-white text-xs font-medium focus:outline-none placeholder:text-zinc-600 uppercase font-mono-custom transition-colors" />
+            </div>
+          </div>
+
+          <!-- Row 2: SKU, Category, Sale Price, MRP -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="add-product-sku" class="text-[10px] font-bold text-zinc-400 uppercase font-mono-custom">SKU Sequence <span class="text-[#ff5500]">*</span></label>
+                <button type="button" onclick="autoSuggestSkuField()" title="Re-suggest next SKU in sequence" class="text-[9px] text-[#ff5500] hover:underline font-mono-custom font-bold">Auto-Suggest</button>
+              </div>
+              <input type="text" id="add-product-sku" required class="w-full bg-[#161616] border border-[#2a2a2a] focus:border-[#ff5500] rounded-xl px-4 py-2.5 text-white text-xs font-mono-custom font-bold focus:outline-none transition-colors" />
+            </div>
+
+            <div>
+              <label for="add-product-category" class="text-[10px] font-bold text-zinc-400 uppercase font-mono-custom mb-1.5 block">Category <span class="text-[#ff5500]">*</span></label>
+              <select id="add-product-category" onchange="onCategorySelectChange(this)" class="w-full bg-[#161616] border border-[#2a2a2a] focus:border-[#ff5500] rounded-xl px-3.5 py-2.5 text-white text-xs font-medium focus:outline-none transition-colors">
+                <option value="power-tools" data-name="Power Tools">Power Tools</option>
+                <option value="welding" data-name="Welding Equipment">Welding Equipment</option>
+                <option value="hand-tools" data-name="Hand Tools">Hand Tools</option>
+                <option value="measuring" data-name="Measuring & Precision">Measuring & Precision</option>
+                <option value="abrasives" data-name="Cutting & Abrasives">Cutting & Abrasives</option>
+                <option value="__new__">+ Add New Category...</option>
+              </select>
+              <input type="text" id="add-product-custom-category" placeholder="Enter new category name..." class="hidden mt-2 w-full bg-[#161616] border border-[#ff5500]/50 rounded-xl px-3.5 py-2 text-white text-xs font-medium focus:outline-none" />
+            </div>
+
+            <div>
+              <label for="add-product-sale-price" class="text-[10px] font-bold text-zinc-400 uppercase font-mono-custom mb-1.5 block">Sale Price (₹) <span class="text-[#ff5500]">*</span></label>
+              <input type="number" id="add-product-sale-price" min="0" step="10" placeholder="e.g. 3490" required class="w-full bg-[#161616] border border-[#2a2a2a] focus:border-[#ff5500] rounded-xl px-4 py-2.5 text-white text-xs font-mono-custom font-bold focus:outline-none placeholder:text-zinc-600 transition-colors" />
+            </div>
+
+            <div>
+              <label for="add-product-mrp" class="text-[10px] font-bold text-zinc-400 uppercase font-mono-custom mb-1.5 block">Retail MRP (₹)</label>
+              <input type="number" id="add-product-mrp" min="0" step="10" placeholder="e.g. 4850" class="w-full bg-[#161616] border border-[#2a2a2a] focus:border-[#ff5500] rounded-xl px-4 py-2.5 text-zinc-300 text-xs font-mono-custom font-bold focus:outline-none placeholder:text-zinc-600 transition-colors" />
+            </div>
+          </div>
+
+          <!-- Row 3: Stock Quantity & Stock Status Toggle & Brief Description -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+            <div>
+              <label for="add-product-quantity" class="text-[10px] font-bold text-zinc-400 uppercase font-mono-custom mb-1.5 block">Stock Quantity <span class="text-[#ff5500]">*</span></label>
+              <input type="number" id="add-product-quantity" min="0" value="10" required oninput="onStockQuantityChange(this.value)" class="w-full bg-[#161616] border border-[#2a2a2a] focus:border-[#ff5500] rounded-xl px-4 py-2.5 text-white text-xs font-mono-custom font-bold focus:outline-none transition-colors" />
+            </div>
+
+            <div>
+              <label class="text-[10px] font-bold text-zinc-400 uppercase font-mono-custom mb-1.5 block">Stock Availability Status</label>
+              <button type="button" id="add-product-stock-btn" onclick="toggleAddProductStockStatus()" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold font-mono-custom transition-all bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/80 flex items-center justify-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400" id="add-product-stock-dot"></span>
+                <span id="add-product-stock-label">● In Stock</span>
+              </button>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="add-product-desc" class="text-[10px] font-bold text-zinc-400 uppercase font-mono-custom mb-1.5 block">Brief Description (Optional)</label>
+              <input type="text" id="add-product-desc" placeholder="Heavy-duty industrial grade gear..." class="w-full bg-[#161616] border border-[#2a2a2a] focus:border-[#ff5500] rounded-xl px-4 py-2.5 text-white text-xs font-medium focus:outline-none placeholder:text-zinc-600 transition-colors" />
+            </div>
+          </div>
+
+          <!-- Row 4: Product Image Section (Upload Photo / Take Photo / Live Preview) -->
+          <div class="bg-[#121212] p-4 rounded-2xl border border-[#2a2a2a] space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <label class="text-[10px] font-bold text-zinc-300 uppercase font-mono-custom block">Product Image</label>
+                <p class="text-[11px] text-zinc-500 font-mono-custom">Upload image file or capture directly using camera.</p>
+              </div>
+              <span id="image-status-badge" class="text-[9px] font-mono-custom uppercase font-bold text-zinc-500 bg-zinc-900 border border-[#2a2a2a] px-2 py-0.5 rounded">No Image Selected</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <!-- Upload Photo File Input -->
+              <input type="file" id="add-product-file-input" accept="image/*" class="hidden" onchange="handleProductImageFile(this.files[0])" />
+              <button type="button" onclick="document.getElementById('add-product-file-input').click()" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-bold font-mono-custom border border-[#2a2a2a] hover:border-[#ff5500]/50 transition-all flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Upload Photo</span>
+              </button>
+
+              <!-- Take Photo (Mobile Environment Camera / Desktop Live Webcam) -->
+              <input type="file" id="add-product-camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleProductImageFile(this.files[0])" />
+              <button type="button" onclick="triggerCameraCapture()" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-bold font-mono-custom border border-[#2a2a2a] hover:border-[#ff5500]/50 transition-all flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span>Take Photo</span>
+              </button>
+
+              <button type="button" id="remove-preview-btn" onclick="removeProductImagePreview()" class="hidden px-3 py-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs font-bold font-mono-custom border border-red-500/30 transition-all flex items-center gap-1.5">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Remove</span>
+              </button>
+            </div>
+
+            <!-- Image Thumbnail Preview Container -->
+            <div id="image-preview-card" class="hidden flex items-center gap-4 p-3 bg-[#161616] rounded-xl border border-[#2a2a2a]">
+              <img id="image-preview-thumb" src="" alt="Preview" class="w-16 h-16 object-contain bg-white rounded-lg p-1 border border-zinc-700 shrink-0" />
+              <div class="min-w-0 flex-1">
+                <span class="text-xs font-bold text-white block truncate" id="preview-filename">image.jpg</span>
+                <span class="text-[10px] text-zinc-400 font-mono-custom block" id="preview-filesize">Base64 Encoded</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#2a2a2a]">
+            <button type="button" onclick="resetAddProductForm()" class="px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-bold font-mono-custom transition-all border border-[#2a2a2a]">
+              Clear Form
+            </button>
+            <button type="submit" class="btn-orange px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 shadow-lg active:scale-95 font-mono-custom">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Add Product to Catalog</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
       <!-- Inventory Search & Filter Bar -->
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#121212] p-4 rounded-2xl border border-[#2a2a2a]">
         <div class="relative w-full sm:w-96">
@@ -143,6 +282,36 @@
 
     </div>
   </main>
+
+  <!-- Live Webcam Modal (For Desktop Webcam Capture) -->
+  <div id="webcam-modal-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#161616] border border-[#2a2a2a] rounded-2xl p-5 max-w-lg w-full space-y-4 shadow-2xl animate-scale-in">
+      <div class="flex items-center justify-between pb-3 border-b border-[#2a2a2a]">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#ff5500] animate-ping"></span>
+          <h4 class="text-sm font-black uppercase text-white font-display">Live Camera Capture</h4>
+        </div>
+        <button type="button" onclick="closeWebcamModal()" class="text-zinc-400 hover:text-white p-1 rounded-lg transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      
+      <div class="relative bg-black rounded-xl overflow-hidden aspect-video flex items-center justify-center">
+        <video id="webcam-video" autoplay playsinline class="w-full h-full object-cover"></video>
+        <canvas id="webcam-canvas" class="hidden"></canvas>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" onclick="closeWebcamModal()" class="px-4 py-2 rounded-xl bg-zinc-900 text-zinc-400 hover:text-white text-xs font-bold font-mono-custom border border-[#2a2a2a]">
+          Cancel
+        </button>
+        <button type="button" onclick="captureWebcamSnapshot()" class="btn-orange px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 font-mono-custom">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Capture Photo</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= FOOTER ================= -->
   <footer class="bg-[#0a0a0a] border-t border-[#2a2a2a] py-8 text-center text-xs text-zinc-500 font-mono-custom">
