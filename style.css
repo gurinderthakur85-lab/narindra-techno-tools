@@ -118,6 +118,7 @@ header {
 .nav-link {
   position: relative;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .nav-link::after {
@@ -134,6 +135,38 @@ header {
 .nav-link:hover::after,
 .nav-link.active::after {
   width: 100%;
+}
+
+/* Responsive Logo Lockup */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .logo-text-full {
+    display: none !important;
+  }
+  .logo-text-compact {
+    display: inline-block !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+  }
+  .logo-sub-compact {
+    display: inline-block !important;
+    font-size: 8.5px !important;
+    letter-spacing: 0.05em !important;
+  }
+  .logo-box {
+    width: 34px !important;
+    height: 34px !important;
+  }
+}
+@media (max-width: 1023.98px), (min-width: 1280px) {
+  .logo-text-full {
+    display: inline-block !important;
+  }
+  .logo-text-compact {
+    display: none !important;
+  }
+  .logo-sub-compact {
+    display: none !important;
+  }
 }
 
 /* Product Cards */
