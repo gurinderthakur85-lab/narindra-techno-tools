@@ -202,8 +202,8 @@ const state = {
 
 // --- ADMIN AUTHENTICATION ENGINE (TEMPORARY CLIENT-SIDE GATE) ---
 // Secure SHA-256 hash for administrator credentials.
-// Paste your 64-character SHA-256 hash below:
-const DEFAULT_ADMIN_HASH = "<PASTE YOUR HASH>";
+// Corresponds to admin@123 (Length: 64 hex characters)
+const DEFAULT_ADMIN_HASH = "7676aaafb027c825bd9abab78b234070e702752f625b752e55e55b48e607e358";
 
 function getAdminPasswordHash() {
   return DEFAULT_ADMIN_HASH;
@@ -263,7 +263,7 @@ async function handleAdminLoginSubmit(e) {
     if (isIdentityProvided && isMatch) {
       localStorage.setItem("ntt_admin_logged_in", "true");
       const isSub = window.location.pathname.includes("/admin/login");
-      const target = isSub ? "../index.html" : (window.location.protocol === "file:" ? "admin/index.html" : "/admin");
+      const target = (window.location.protocol === "file:") ? (isSub ? "../index.html" : "admin/index.html") : "/admin";
       window.location.href = target;
       return;
     } else {
