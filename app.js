@@ -1,4 +1,4 @@
-// Narindra Techno Tools - E-Commerce Application & Interactive Engine (Black-White-Orange Theme)
+// Narindra Express - E-Commerce Application & Interactive Engine (Black-White-Orange Theme)
 
 // --- PRODUCT CATALOG DATABASE ---
 const PRODUCTS_DATA = [
@@ -200,6 +200,117 @@ const state = {
   selectedQtyCount: 1
 };
 
+// --- ADMIN AUTHENTICATION ENGINE (TEMPORARY CLIENT-SIDE GATE) ---
+// Secure SHA-256 hash for administrator credentials.
+// Paste your 64-character SHA-256 hash below:
+const DEFAULT_ADMIN_HASH = "<PASTE YOUR HASH>";
+
+function getAdminPasswordHash() {
+  return DEFAULT_ADMIN_HASH;
+}
+
+function isAdminLoggedIn() {
+  try {
+    return localStorage.getItem("ntt_admin_logged_in") === "true";
+  } catch (e) {
+    return false;
+  }
+}
+
+async function hashPasswordSHA256(str) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function handleAdminLoginSubmit(e) {
+  if (e) e.preventDefault();
+  const identityInput = document.getElementById("admin-login-identity");
+  const passInput = document.getElementById("admin-login-password");
+  const errorBox = document.getElementById("admin-login-error");
+  const errorText = document.getElementById("admin-login-error-text");
+  const btn = document.getElementById("admin-login-btn");
+
+  if (!identityInput || !passInput) return;
+
+  const identity = identityInput.value.trim().toLowerCase();
+  const password = passInput.value;
+
+  if (!identity || !password) {
+    if (errorBox) {
+      if (errorText) errorText.textContent = "Please enter both email/username and password.";
+      errorBox.classList.remove("hidden");
+    }
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.add("opacity-75");
+  }
+  if (errorBox) errorBox.classList.add("hidden");
+
+  try {
+    const inputHash = await hashPasswordSHA256(password);
+    const targetHash = getAdminPasswordHash();
+
+    // Verify identity & password hash
+    const isIdentityProvided = identity.length > 0;
+    const isMatch = (inputHash === targetHash);
+
+    if (isIdentityProvided && isMatch) {
+      localStorage.setItem("ntt_admin_logged_in", "true");
+      const isSub = window.location.pathname.includes("/admin/login");
+      const target = isSub ? "../index.html" : (window.location.protocol === "file:" ? "admin/index.html" : "/admin");
+      window.location.href = target;
+      return;
+    } else {
+      if (errorBox) {
+        if (errorText) errorText.textContent = "Invalid email/username or password. Please verify your credentials and try again.";
+        errorBox.classList.remove("hidden");
+      }
+    }
+  } catch (err) {
+    if (errorBox) {
+      if (errorText) errorText.textContent = "Authentication error occurred: " + err.message;
+      errorBox.classList.remove("hidden");
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.remove("opacity-75");
+    }
+  }
+}
+
+function handleAdminLogout() {
+  try {
+    localStorage.removeItem("ntt_admin_logged_in");
+  } catch (e) {}
+  const isSub = window.location.pathname.includes("/admin/");
+  const target = isSub ? "login/index.html" : (window.location.protocol === "file:" ? "admin/login.html" : "/admin/login");
+  window.location.href = target;
+}
+
+function checkAdminRouteGate() {
+  const path = window.location.pathname;
+  const isAdminRoute = path === "/admin" ||
+                       path === "/dashboard" ||
+                       path.endsWith("/admin.html") ||
+                       path.endsWith("/admin/index.html") ||
+                       path.endsWith("/admin/");
+
+  if (isAdminRoute) {
+    if (!isAdminLoggedIn()) {
+      const isSub = path.includes("/admin/");
+      const target = isSub ? "login/index.html" : (window.location.protocol === "file:" ? "admin/login.html" : "/admin/login");
+      window.location.replace(target);
+    }
+  }
+}
+
 // Helper: resolve link paths on file:// protocol for local browsing
 function resolveLinksForFileProtocol() {
   if (window.location.protocol === "file:") {
@@ -214,6 +325,7 @@ function resolveLinksForFileProtocol() {
       else if (path === "/products") a.href = prefix + "products/index.html";
       else if (path === "/about") a.href = prefix + "about/index.html";
       else if (path === "/contact") a.href = prefix + "contact/index.html";
+      else if (path === "/admin/login") a.href = prefix + "admin/login/index.html";
       else if (path === "/admin") a.href = prefix + "admin/index.html";
     });
   }
@@ -221,6 +333,7 @@ function resolveLinksForFileProtocol() {
 
 // --- INITIALIZATION ENGINE ---
 document.addEventListener("DOMContentLoaded", () => {
+  checkAdminRouteGate();
   resolveLinksForFileProtocol();
   loadSavedProducts();
   loadSavedCart();
@@ -373,6 +486,83 @@ function applyFilters() {
   renderProducts();
 }
 
+// --- BLINKIT-STYLE CART STEPPER HELPERS ---
+function getProductCartQty(productId) {
+  const item = state.cart.find(i => i.id === productId);
+  return item ? item.quantity : 0;
+}
+
+function renderCardCartButton(productId) {
+  const qty = getProductCartQty(productId);
+  if (qty <= 0) {
+    return `
+      <button type="button" class="btn-cart animate-squish w-full" onclick="handleCardStep('${productId}', 1, event)" title="Add to cart">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>ADD</span>
+      </button>
+    `;
+  } else {
+    return `
+      <div class="stepper-container animate-scale-in" data-stepper-id="${productId}">
+        <button type="button" class="stepper-btn stepper-btn-minus" onclick="handleCardStep('${productId}', -1, event)" title="Decrease quantity" aria-label="Decrease quantity">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <span class="stepper-qty" id="stepper-val-${productId}">${qty}</span>
+        <button type="button" class="stepper-btn stepper-btn-plus" onclick="handleCardStep('${productId}', 1, event)" title="Increase quantity" aria-label="Increase quantity">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+      </div>
+    `;
+  }
+}
+
+function handleCardStep(productId, delta, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  const product = state.products.find(p => p.id === productId);
+  if (!product) return;
+
+  const existingItem = state.cart.find(i => i.id === productId);
+
+  if (delta > 0) {
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      state.cart.push({
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        price: product.discountedPrice,
+        image: product.image,
+        quantity: 1
+      });
+    }
+  } else if (delta < 0) {
+    if (existingItem) {
+      existingItem.quantity -= 1;
+      if (existingItem.quantity <= 0) {
+        state.cart = state.cart.filter(i => i.id !== productId);
+      }
+    }
+  }
+
+  saveCart();
+  updateCartBadge();
+  renderCartDrawer();
+  updateAllProductSteppers();
+}
+
+function updateAllProductSteppers() {
+  document.querySelectorAll("[data-card-btn-container]").forEach(container => {
+    const pid = container.getAttribute("data-card-btn-container");
+    if (pid) {
+      container.innerHTML = renderCardCartButton(pid);
+    }
+  });
+}
+
 // --- RENDER PRODUCTS GRID ---
 function renderProducts() {
   const gridContainer = document.getElementById("products-grid");
@@ -440,12 +630,11 @@ function renderProducts() {
             ` : ''}
           </div>
 
-          <!-- DUAL SIDE-BY-SIDE BUTTONS: ADD TO CART & BUY NOW -->
+          <!-- DUAL SIDE-BY-SIDE BUTTONS: ADD TO CART STEPPER & BUY NOW -->
           <div class="action-buttons-group">
-            <button class="btn-cart animate-squish" onclick="addToCart('${product.id}', 1)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-              <span>Add Cart</span>
-            </button>
+            <div data-card-btn-container="${product.id}" class="w-full">
+              ${renderCardCartButton(product.id)}
+            </div>
             
             <button class="btn-buy-now animate-squish animate-wiggle" onclick="openCheckoutModal('${product.id}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -519,10 +708,9 @@ function renderFeaturedProducts() {
             ` : ''}
           </div>
           <div class="action-buttons-group">
-            <button class="btn-cart animate-squish" onclick="addToCart('${product.id}', 1)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-              <span>Add Cart</span>
-            </button>
+            <div data-card-btn-container="${product.id}" class="w-full">
+              ${renderCardCartButton(product.id)}
+            </div>
             <button class="btn-buy-now animate-squish animate-wiggle" onclick="openCheckoutModal('${product.id}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               <span>Buy Now</span>
@@ -555,7 +743,7 @@ function openCallModal(productId) {
   // Set WhatsApp query link
   const waBtn = document.getElementById("modal-btn-whatsapp");
   if (waBtn) {
-    const waText = encodeURIComponent(`Hi Narindra Techno Tools, I am interested in purchasing: ${product.name} (Price: ₹${product.discountedPrice}). Please provide availability & wholesale bulk quotation.`);
+    const waText = encodeURIComponent(`Hi Narindra Express, I am interested in purchasing: ${product.name} (Price: ₹${product.discountedPrice}). Please provide availability & wholesale bulk quotation.`);
     waBtn.href = `https://wa.me/918283848559?text=${waText}`;
   }
 
@@ -673,6 +861,7 @@ function addToCart(productId, quantity = 1) {
   updateCartBadge();
   renderCartDrawer();
   openCartDrawer();
+  updateAllProductSteppers();
   showToast(`Added ${numQty}x "${product.name.slice(0, 20)}..." to cart!`);
 }
 
@@ -688,6 +877,7 @@ function updateQuantity(productId, delta) {
   saveCart();
   updateCartBadge();
   renderCartDrawer();
+  updateAllProductSteppers();
 }
 
 function removeFromCart(productId) {
@@ -695,6 +885,7 @@ function removeFromCart(productId) {
   saveCart();
   updateCartBadge();
   renderCartDrawer();
+  updateAllProductSteppers();
 }
 
 function saveCart() {
@@ -707,6 +898,16 @@ function updateCartBadge() {
   if (badge) {
     badge.textContent = count;
     badge.style.display = count > 0 ? "flex" : "none";
+  }
+  const label = document.getElementById("cart-btn-label");
+  if (label) {
+    if (count === 0) {
+      label.textContent = "CART · 0 ITEMS";
+    } else if (count === 1) {
+      label.textContent = "CART · 1 ITEM";
+    } else {
+      label.textContent = `CART · ${count} ITEMS`;
+    }
   }
 }
 
@@ -1003,16 +1204,16 @@ function renderAdminProducts() {
 
   container.innerHTML = filtered.map(product => {
     return `
-      <div class="admin-product-row flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 bg-[#161616] border border-[#2a2a2a] rounded-xl hover:border-[#ff5500]/50 transition-colors">
-        <div class="flex items-center gap-3 flex-1 min-w-0">
+      <div class="admin-product-row flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 bg-[#161616] border border-[#2a2a2a] rounded-xl hover:border-[#ff5500]/50 transition-colors w-full overflow-hidden">
+        <div class="flex items-center gap-3 flex-1 min-w-0 w-full">
           <img src="${product.image}" alt="${product.name}" class="w-14 h-14 object-contain bg-white rounded-lg p-1.5 border border-zinc-700 shrink-0" />
-          <div class="min-w-0">
-            <div class="flex items-center gap-2 mb-1">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2 mb-1">
               <span class="text-[10px] font-black uppercase text-[#ff5500] font-mono-custom bg-[#ff5500]/10 px-2 py-0.5 rounded border border-[#ff5500]/20">${product.brand}</span>
               <span class="text-[10px] font-mono-custom text-zinc-500">${product.id}</span>
               <span class="text-[10px] font-mono-custom text-zinc-400 capitalize hidden sm:inline">(${product.categoryName})</span>
             </div>
-            <h4 class="text-xs font-bold text-white truncate max-w-md">${product.name}</h4>
+            <h4 class="admin-product-title text-xs font-bold text-white truncate max-w-full block cursor-pointer" title="${product.name}">${product.name}</h4>
           </div>
         </div>
 
@@ -1597,5 +1798,15 @@ window.PRODUCTS_DATA = PRODUCTS_DATA;
 window.loadSavedProducts = loadSavedProducts;
 window.saveProducts = saveProducts;
 window.applyFilters = applyFilters;
+window.handleCardStep = handleCardStep;
+window.renderCardCartButton = renderCardCartButton;
+window.updateAllProductSteppers = updateAllProductSteppers;
+window.handleAdminLoginSubmit = handleAdminLoginSubmit;
+window.handleAdminLogout = handleAdminLogout;
+window.hashPasswordSHA256 = hashPasswordSHA256;
+window.isAdminLoggedIn = isAdminLoggedIn;
+window.getAdminPasswordHash = getAdminPasswordHash;
+window.getProductCartQty = getProductCartQty;
+
 
 

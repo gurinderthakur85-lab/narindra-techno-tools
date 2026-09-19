@@ -1,4 +1,4 @@
-/* Narindra Techno Tools - Design System & Black White Orange Theme (Ref: narindra-insta.vercel.app) */
+/* Narindra Express - Design System & Black White Orange Theme (Ref: narindra-insta.vercel.app) */
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
 
 :root {
@@ -153,11 +153,11 @@ header {
     letter-spacing: 0.05em !important;
   }
   .logo-box {
-    width: 34px !important;
-    height: 34px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 }
-@media (max-width: 1023.98px), (min-width: 1280px) {
+@media (min-width: 1280px) {
   .logo-text-full {
     display: inline-block !important;
   }
@@ -166,6 +166,34 @@ header {
   }
   .logo-sub-compact {
     display: none !important;
+  }
+}
+@media (max-width: 1023.98px) {
+  .logo-text-compact {
+    display: none !important;
+  }
+  .logo-sub-compact {
+    display: none !important;
+  }
+}
+@media (max-width: 639.98px) {
+  .logo-box {
+    width: 30px !important;
+    height: 30px !important;
+    padding: 2px !important;
+    border-radius: 8px !important;
+  }
+  .logo-text-full:first-child {
+    font-size: 11px !important;
+    letter-spacing: -0.01em !important;
+    display: inline-block !important;
+  }
+  .logo-text-full:not(:first-child) {
+    display: none !important;
+  }
+  .cart-btn-label {
+    font-size: 0.62rem !important;
+    letter-spacing: 0.02em !important;
   }
 }
 
@@ -673,5 +701,79 @@ header {
   pointer-events: auto;
   transform: translate(-50%, -50%) scale(1);
 }
+
+/* Machine Name Overflow Prevention */
+.admin-product-title {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: break-word;
+}
+
+/* Blinkit-Style Cart Stepper Button */
+.stepper-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2.3rem;
+  padding: 0.25rem 0.35rem;
+  background-color: var(--narindra-orange);
+  border: 1px solid var(--narindra-orange);
+  border-radius: 0.6rem;
+  color: #ffffff;
+  box-shadow: 0 2px 10px var(--narindra-orange-glow);
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.4rem;
+  background-color: rgba(0, 0, 0, 0.28);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.stepper-btn:hover {
+  background-color: #000000;
+  transform: scale(1.08);
+}
+
+.stepper-btn:active {
+  transform: scale(0.92);
+}
+
+.stepper-qty {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 900;
+  font-size: 0.85rem;
+  padding: 0 0.3rem;
+  color: #ffffff;
+  min-width: 1.4rem;
+  text-align: center;
+}
+
+/* Cart Trigger Label in Navbar */
+.cart-btn-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
 
 
