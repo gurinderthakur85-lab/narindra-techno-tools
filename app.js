@@ -338,9 +338,14 @@ document.addEventListener("DOMContentLoaded", () => {
   loadSavedProducts();
   loadSavedCart();
   setupEventListeners();
+  loadAdminCategories();
   renderProducts();
   renderFeaturedProducts();
   renderAdminProducts();
+  renderAdminBrands();
+  renderAdminCategoriesTree();
+  renderAdminDashboardStats();
+  renderAdminOrders();
   initAddProductForm();
   updateCartBadge();
 
@@ -496,6 +501,14 @@ function setupEventListeners() {
     adminSearchInput.addEventListener("input", (e) => {
       state.adminSearchQuery = e.target.value.toLowerCase().trim();
       renderAdminProducts();
+    });
+  }
+
+  // Admin Category Tree Search
+  const categorySearchInput = document.getElementById("category-search-input");
+  if (categorySearchInput) {
+    categorySearchInput.addEventListener("input", () => {
+      renderAdminCategoriesTree();
     });
   }
 }
@@ -1167,6 +1180,28 @@ function handleCheckoutSubmit(e) {
   }
 
   showToast(`Order ${orderId} Placed Successfully!`);
+
+  // Safe local audit record (isolated try/catch, zero impact on checkout)
+  try {
+    recordOrderLocally({
+      id: orderId,
+      date: new Date().toISOString(),
+      customer: {
+        name: name || "Valued Customer",
+        phone: phone || "N/A",
+        address: fullAddressStr || "N/A"
+      },
+      items: (state.checkoutItems || []).map(i => ({
+        name: i.name,
+        quantity: i.quantity,
+        price: i.price
+      })),
+      total: grandTotal,
+      status: "IN DISPATCH"
+    });
+  } catch (err) {
+    console.warn("Local order audit notification:", err);
+  }
 }
 
 function closeOrderSuccessModal() {
@@ -1175,27 +1210,411 @@ function closeOrderSuccessModal() {
 }
 
 // --- TOAST NOTIFICATIONS ---
+let activeToastTimeout = null;
+
 function showToast(message) {
+  const existing = document.getElementById("app-global-toast");
+  if (existing) {
+    if (activeToastTimeout) clearTimeout(activeToastTimeout);
+    existing.remove();
+  }
+
   const toast = document.createElement("div");
-  toast.className = "fixed bottom-6 right-6 z-150 bg-[#161616] text-white border border-[#ff5500] px-5 py-3.5 rounded-xl shadow-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-3 transition-all duration-300 transform translate-y-10 opacity-0";
+  toast.id = "app-global-toast";
+  toast.className = "fixed bottom-6 right-6 z-50 bg-[#141414] text-white border border-[#ff5500] px-4 py-3 rounded-xl shadow-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-2.5 transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none";
   toast.innerHTML = `
-    <div class="w-2.5 h-2.5 rounded-full bg-[#ff5500] animate-ping"></div>
-    <span>${message}</span>
+    <div class="w-2 h-2 rounded-full bg-[#ff5500] shrink-0"></div>
+    <span class="truncate max-w-xs font-mono-custom">${message}</span>
   `;
 
   document.body.appendChild(toast);
 
-  setTimeout(() => {
+  requestAnimationFrame(() => {
     toast.classList.remove("translate-y-10", "opacity-0");
-  }, 50);
+  });
 
-  setTimeout(() => {
+  activeToastTimeout = setTimeout(() => {
     toast.classList.add("translate-y-10", "opacity-0");
-    setTimeout(() => toast.remove(), 300);
-  }, 3500);
+    setTimeout(() => {
+      if (toast.parentNode) toast.remove();
+    }, 300);
+  }, 3000);
 }
 
 // --- OWNER ADMIN DASHBOARD ENGINE (Direct Full Dashboard, Zero PIN Gate) ---
+
+const DEFAULT_CATEGORIES = [
+  {
+    id: "power-tools",
+    name: "Power Tools",
+    image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=400&q=80",
+    subcategories: [
+      { id: "impact-drills", name: "Impact Drills", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "angle-grinders", name: "Angle Grinders", image: "https://images.unsplash.com/photo-1581147036324-c17ac41dfa6c?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "rotary-hammers", name: "Rotary Hammers", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?auto=format&fit=crop&w=200&q=80", featured: false },
+      { id: "demolition-hammers", name: "Demolition Hammers", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=200&q=80", featured: false },
+      { id: "marble-cutters", name: "Marble Cutters", image: "https://images.unsplash.com/photo-1581147036324-c17ac41dfa6c?auto=format&fit=crop&w=200&q=80", featured: false },
+      { id: "cordless-drivers", name: "Cordless Drivers", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "mitre-saws", name: "Mitre Saws", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=200&q=80", featured: false },
+      { id: "heat-guns", name: "Heat Guns", image: "https://images.unsplash.com/photo-1581147036324-c17ac41dfa6c?auto=format&fit=crop&w=200&q=80", featured: false }
+    ]
+  },
+  {
+    id: "welding",
+    name: "Welding Equipment",
+    image: "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=400&q=80",
+    subcategories: [
+      { id: "arc-inverters", name: "ARC Inverters", image: "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "mig-welders", name: "MIG/MAG Welders", image: "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=200&q=80", featured: false },
+      { id: "tig-welders", name: "TIG Welders", image: "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=200&q=80", featured: false },
+      { id: "plasma-cutters", name: "Plasma Cutters", image: "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "welding-torches", name: "Welding Torches", image: "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=200&q=80", featured: false }
+    ]
+  },
+  {
+    id: "hand-tools",
+    name: "Hand Tools",
+    image: "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=400&q=80",
+    subcategories: [
+      { id: "torque-wrenches", name: "Torque Wrenches", image: "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "socket-sets", name: "Socket Sets", image: "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "heavy-pliers", name: "Heavy Pliers", image: "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=200&q=80", featured: false },
+      { id: "bolt-cutters", name: "Bolt Cutters", image: "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=200&q=80", featured: false }
+    ]
+  },
+  {
+    id: "measuring",
+    name: "Measuring & Precision",
+    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80",
+    subcategories: [
+      { id: "laser-meters", name: "Laser Distance Meters", image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "digital-calipers", name: "Digital Calipers", image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "dial-gauges", name: "Dial Gauges", image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=200&q=80", featured: false },
+      { id: "spirit-levels", name: "Spirit Levels", image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=200&q=80", featured: false }
+    ]
+  },
+  {
+    id: "abrasives",
+    name: "Cutting & Abrasives",
+    image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=400&q=80",
+    subcategories: [
+      { id: "cutting-wheels", name: "Cutting Wheels", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "flap-discs", name: "Flap Discs", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=200&q=80", featured: true },
+      { id: "grinding-wheels", name: "Grinding Wheels", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=200&q=80", featured: false },
+      { id: "diamond-blades", name: "Diamond Blades", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=200&q=80", featured: false }
+    ]
+  }
+];
+
+function loadAdminCategories() {
+  const saved = localStorage.getItem("ntt_categories");
+  if (saved) {
+    try {
+      state.categories = JSON.parse(saved);
+      return;
+    } catch (e) {
+      console.warn("Error parsing ntt_categories", e);
+    }
+  }
+  state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+  saveAdminCategories();
+}
+
+function saveAdminCategories() {
+  try {
+    localStorage.setItem("ntt_categories", JSON.stringify(state.categories));
+  } catch (e) {
+    console.warn("Error saving ntt_categories", e);
+  }
+}
+
+function loadAdminOrders() {
+  try {
+    const raw = localStorage.getItem("ntt_orders");
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveAdminOrders(orders) {
+  try {
+    localStorage.setItem("ntt_orders", JSON.stringify(orders));
+  } catch (e) {
+    console.warn("Error saving ntt_orders", e);
+  }
+}
+
+function recordOrderLocally(orderData) {
+  try {
+    const orders = loadAdminOrders();
+    orders.unshift(orderData);
+    saveAdminOrders(orders);
+    renderAdminDashboardStats();
+    renderAdminOrders();
+  } catch (e) {
+    console.warn("Could not record order locally", e);
+  }
+}
+
+function updateOrderStatus(orderId, newStatus) {
+  const orders = loadAdminOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+  order.status = newStatus;
+  saveAdminOrders(orders);
+  renderAdminOrders();
+  renderAdminDashboardStats();
+  showToast(`Order ${orderId} status set to ${newStatus}`);
+}
+
+// --- ADMIN SPA NAVIGATION ENGINE ---
+let currentAdminSection = "dashboard";
+let currentProductTab = "inventory";
+
+function switchAdminSection(section) {
+  currentAdminSection = section;
+
+  // Update navigation items
+  document.querySelectorAll("[data-admin-nav]").forEach(el => {
+    const target = el.getAttribute("data-admin-nav");
+    if (target === section) {
+      el.classList.add("active");
+    } else {
+      el.classList.remove("active");
+    }
+  });
+
+  // Switch visible sections
+  const secDashboard = document.getElementById("admin-section-dashboard");
+  const secProducts = document.getElementById("admin-section-products");
+  const secOrders = document.getElementById("admin-section-orders");
+
+  if (secDashboard) secDashboard.classList.toggle("hidden", section !== "dashboard");
+  if (secProducts) secProducts.classList.toggle("hidden", section !== "products");
+  if (secOrders) secOrders.classList.toggle("hidden", section !== "orders");
+
+  // Update breadcrumb and header title
+  const breadcrumb = document.getElementById("admin-breadcrumb");
+  const title = document.getElementById("admin-page-title");
+  if (breadcrumb) breadcrumb.textContent = `SYSTEM / ${section.toUpperCase()}`;
+  if (title) title.textContent = `${section.toUpperCase()}.`;
+
+  // Render current active view
+  if (section === "dashboard") {
+    renderAdminDashboardStats();
+  } else if (section === "products") {
+    switchProductTab(currentProductTab);
+  } else if (section === "orders") {
+    renderAdminOrders();
+  }
+
+  // Close mobile drawer if open
+  closeAdminMobileDrawer();
+}
+
+function switchProductTab(tab) {
+  currentProductTab = tab;
+
+  // Update tab navigation buttons
+  document.querySelectorAll("[data-product-tab]").forEach(el => {
+    const target = el.getAttribute("data-product-tab");
+    if (target === tab) {
+      el.className = "pb-3 border-b-2 border-[#ff5500] text-white font-mono-custom text-xs font-black tracking-wider uppercase cursor-pointer select-none transition-colors";
+    } else {
+      el.className = "pb-3 border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 font-mono-custom text-xs font-bold tracking-wider uppercase cursor-pointer select-none transition-colors";
+    }
+  });
+
+  // Dynamic header action button
+  const actionBtnText = document.getElementById("product-tab-action-text");
+  const actionBtn = document.getElementById("product-tab-action-btn");
+  if (actionBtnText && actionBtn) {
+    if (tab === "inventory") {
+      actionBtnText.textContent = "ADD_INVENTORY";
+      actionBtn.onclick = () => openAddProductModal();
+    } else if (tab === "brands") {
+      actionBtnText.textContent = "ADD_BRANDS";
+      actionBtn.onclick = () => openAddProductModal();
+    } else if (tab === "categories") {
+      actionBtnText.textContent = "ADD_CATEGORIES";
+      actionBtn.onclick = () => openAddCategoryModal();
+    }
+  }
+
+  // Toggle tab panels
+  const paneInv = document.getElementById("product-tab-inventory");
+  const paneBrands = document.getElementById("product-tab-brands");
+  const paneCats = document.getElementById("product-tab-categories");
+
+  if (paneInv) paneInv.classList.toggle("hidden", tab !== "inventory");
+  if (paneBrands) paneBrands.classList.toggle("hidden", tab !== "brands");
+  if (paneCats) paneCats.classList.toggle("hidden", tab !== "categories");
+
+  if (tab === "inventory") renderAdminProducts();
+  if (tab === "brands") renderAdminBrands();
+  if (tab === "categories") renderAdminCategoriesTree();
+}
+
+// --- ADMIN DASHBOARD STATS & RECENT TRANSACTIONS (100% Real Data, Zero Fake Data) ---
+function renderAdminDashboardStats() {
+  const orders = loadAdminOrders();
+  const totalRevenueEl = document.getElementById("dash-total-revenue");
+  const avgOrderEl = document.getElementById("dash-avg-order");
+  const dispatchQueueEl = document.getElementById("dash-dispatch-queue");
+  const transactionsContainer = document.getElementById("dash-recent-transactions");
+
+  const totalRev = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const avgOrder = orders.length > 0 ? Math.round(totalRev / orders.length) : 0;
+  const dispatchCount = orders.filter(o => o.status === "IN DISPATCH" || o.status === "PROCESSING").length;
+
+  if (totalRevenueEl) totalRevenueEl.textContent = `₹${totalRev.toLocaleString('en-IN')}`;
+  if (avgOrderEl) avgOrderEl.textContent = `₹${avgOrder.toLocaleString('en-IN')}`;
+  if (dispatchQueueEl) dispatchQueueEl.textContent = dispatchCount;
+
+  if (!transactionsContainer) return;
+
+  if (orders.length === 0) {
+    transactionsContainer.innerHTML = `
+      <div class="py-12 text-center text-zinc-500 font-mono-custom text-xs">
+        No orders yet. Customer orders placed in this browser will appear here.
+      </div>
+    `;
+    return;
+  }
+
+  const latest = orders.slice(0, 5);
+  transactionsContainer.innerHTML = latest.map(order => {
+    let pillClass = "pill-orange";
+    if (order.status === "DELIVERED") pillClass = "pill-green";
+    if (order.status === "CANCELLED") pillClass = "pill-neutral";
+
+    return `
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 bg-[#161616] rounded-2xl border border-[#222]">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-mono-custom font-bold text-xs text-[#ff5500]">
+            ORD
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-white uppercase font-sans">${order.customer?.name || "Customer"}</span>
+              <span class="text-[10px] font-mono-custom text-zinc-500">${order.id}</span>
+            </div>
+            <div class="text-[10px] font-mono-custom text-zinc-400 truncate max-w-xs sm:max-w-sm">
+              ${(order.items || []).map(i => `${i.quantity}x ${i.name}`).join(", ") || "Machinery Order"}
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+          <span class="font-mono-custom font-black text-sm text-white">₹${Number(order.total || 0).toLocaleString('en-IN')}</span>
+          <span class="${pillClass}">${order.status}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// --- ADMIN ORDERS VIEW (4-Column Layout, Clean Empty State) ---
+function renderAdminOrders() {
+  const container = document.getElementById("admin-orders-list");
+  if (!container) return;
+
+  const orders = loadAdminOrders();
+  if (orders.length === 0) {
+    container.innerHTML = `
+      <div class="admin-card rounded-[28px] p-12 text-center text-zinc-500 font-mono-custom text-xs">
+        No orders yet. Customer orders placed in this browser will appear here.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = orders.map(order => {
+    let pillClass = "pill-orange";
+    if (order.status === "DELIVERED") pillClass = "pill-green";
+    if (order.status === "CANCELLED") pillClass = "pill-neutral";
+
+    const itemsSummary = (order.items || []).map(i => `${i.quantity}x ${i.name} (₹${(i.price * i.quantity).toLocaleString('en-IN')})`).join("<br/>") || "1x Industrial Equipment Order";
+
+    return `
+      <div class="admin-card rounded-[28px] md:rounded-[36px] p-5 sm:p-6 transition-all hover:border-[#333]">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 divide-y md:divide-y-0 md:divide-x divide-zinc-800/80">
+          
+          <!-- Col 1: Customer -->
+          <div class="flex items-start gap-3.5 pr-2">
+            <div class="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-[#ff5500]">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <span class="text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold block mb-1">CLIENT_IDENTITY</span>
+              <h4 class="font-bold text-white uppercase text-sm leading-snug break-words font-sans">${order.customer?.name || "Customer"}</h4>
+              <div class="flex items-center gap-1.5 mt-1 text-xs text-zinc-400 font-mono-custom">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>${order.customer?.phone || "N/A"}</span>
+              </div>
+              <span class="text-[10px] font-mono-custom text-zinc-600 block mt-1">${order.id}</span>
+            </div>
+          </div>
+
+          <!-- Col 2: Shipping Coordinates -->
+          <div class="pt-4 md:pt-0 md:px-5">
+            <div class="flex items-center gap-1.5 text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold mb-2">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>SHIPPING_COORDINATES</span>
+            </div>
+            <p class="text-xs text-zinc-300 font-mono-custom leading-relaxed uppercase break-words">
+              ${order.customer?.address || "Address details on record."}
+            </p>
+          </div>
+
+          <!-- Col 3: Manifest Details -->
+          <div class="pt-4 md:pt-0 md:px-5">
+            <div class="flex items-center gap-1.5 text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold mb-2">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              <span>MANIFEST_DETAILS</span>
+            </div>
+            <div class="text-xs text-zinc-300 font-mono-custom leading-relaxed line-clamp-3">
+              ${itemsSummary}
+            </div>
+            <div class="mt-2 text-sm font-black text-white font-mono-custom">
+              TOTAL: ₹${Number(order.total || 0).toLocaleString('en-IN')}
+            </div>
+          </div>
+
+          <!-- Col 4: Fulfillment -->
+          <div class="pt-4 md:pt-0 md:pl-5 flex flex-col justify-between gap-3">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold">FULFILLMENT</span>
+                <span class="${pillClass} flex items-center gap-1">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>${order.status}</span>
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold block mb-1.5">UPDATE STATUS</label>
+              <div class="relative">
+                <select onchange="updateOrderStatus('${order.id}', this.value)" class="w-full bg-[#161616] border border-zinc-800 hover:border-zinc-700 text-white rounded-xl px-3 py-2 text-xs font-mono-custom font-bold focus:outline-none focus:border-[#ff5500] appearance-none pr-8 transition-colors">
+                  <option value="PROCESSING" ${order.status === "PROCESSING" ? "selected" : ""}>PROCESSING</option>
+                  <option value="IN DISPATCH" ${order.status === "IN DISPATCH" ? "selected" : ""}>IN DISPATCH</option>
+                  <option value="DELIVERED" ${order.status === "DELIVERED" ? "selected" : ""}>DELIVERED</option>
+                  <option value="CANCELLED" ${order.status === "CANCELLED" ? "selected" : ""}>CANCELLED</option>
+                </select>
+                <svg class="absolute right-3 top-2.5 text-zinc-400 pointer-events-none" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// --- MASTER INVENTORY RENDERING (Tab 1: Rounded Card Layout, Star, Chips, Price, Actions) ---
 function renderAdminProducts() {
   const container = document.getElementById("admin-product-list");
   if (!container) return;
@@ -1224,57 +1643,317 @@ function renderAdminProducts() {
 
   if (filtered.length === 0) {
     container.innerHTML = `
-      <div class="py-16 text-center text-zinc-500 font-mono-custom text-xs">
-        No inventory items found matching "${state.adminSearchQuery}"
+      <div class="admin-card rounded-[20px] py-16 text-center text-zinc-500 font-mono-custom text-xs">
+        No inventory items found matching "${state.adminSearchQuery || ''}"
       </div>
     `;
     return;
   }
 
   container.innerHTML = filtered.map(product => {
+    const isFeatured = !!product.featured;
     return `
-      <div class="admin-product-row flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 bg-[#161616] border border-[#2a2a2a] rounded-xl hover:border-[#ff5500]/50 transition-colors w-full overflow-hidden">
-        <div class="flex items-center gap-3 flex-1 min-w-0 w-full">
-          <img src="${product.image}" alt="${product.name}" class="w-14 h-14 object-contain bg-white rounded-lg p-1.5 border border-zinc-700 shrink-0" />
+      <div class="admin-card rounded-[20px] p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all hover:border-[#333]">
+        <!-- Left group: Star + Thumbnail + Details -->
+        <div class="flex items-center gap-3.5 flex-1 min-w-0 w-full">
+          <!-- Star Button -->
+          <button onclick="toggleProductFeatured('${product.id}')" title="Toggle Featured" class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center shrink-0 transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="${isFeatured ? '#ff5500' : 'none'}" stroke="${isFeatured ? '#ff5500' : '#71717a'}" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </button>
+
+          <!-- Thumbnail -->
+          <img src="${product.image}" alt="${product.name}" class="w-20 h-20 rounded-[12px] object-contain bg-white/5 p-1.5 border border-white/10 shrink-0" onerror="this.src='/logo.png'" />
+
+          <!-- Name & Chips -->
           <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-center gap-2 mb-1">
-              <span class="text-[10px] font-black uppercase text-[#ff5500] font-mono-custom bg-[#ff5500]/10 px-2 py-0.5 rounded border border-[#ff5500]/20">${product.brand}</span>
-              <span class="text-[10px] font-mono-custom text-zinc-500">${product.id}</span>
-              <span class="text-[10px] font-mono-custom text-zinc-400 capitalize hidden sm:inline">(${product.categoryName})</span>
+            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+              <span class="font-bold text-white uppercase text-sm leading-snug break-words font-sans">${product.name}</span>
+              <span class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono-custom font-bold text-zinc-300 shrink-0">TR_RATING ${product.rating || '5.0'}</span>
             </div>
-            <h4 class="admin-product-title text-xs font-bold text-white truncate max-w-full block cursor-pointer" title="${product.name}">${product.name}</h4>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono-custom text-zinc-400 font-bold uppercase">ID: ${String(product.id).toUpperCase()}</span>
+              <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono-custom text-[#ff5500] font-bold uppercase">CAT: ${product.categoryName || product.category}</span>
+              <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono-custom text-zinc-400 font-bold uppercase">${product.brand}</span>
+            </div>
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto pt-3 lg:pt-0 border-t lg:border-t-0 border-[#2a2a2a]">
-          <div class="flex flex-col">
-            <label class="text-[9px] font-bold text-zinc-400 uppercase font-mono-custom mb-1">Sale Price (₹)</label>
-            <input type="number" id="admin-sale-${product.id}" value="${product.discountedPrice}" class="admin-price-input w-28 bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#ff5500] rounded-lg px-3 py-1.5 text-white text-xs font-mono-custom font-bold focus:outline-none" min="0" step="10" />
+        <!-- Right group: Stock + Price + Actions -->
+        <div class="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-zinc-800/80 shrink-0">
+          <!-- Stock block centered -->
+          <div class="text-center shrink-0 cursor-pointer" onclick="toggleProductStock('${product.id}')" title="Click to toggle stock status">
+            <div class="font-mono-custom text-base font-black ${product.inStock ? 'text-white' : 'text-red-400'}">
+              # ${product.quantity ?? (product.inStock ? 10 : 0)}
+            </div>
+            <div class="text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold">UNITS IN STOCK</div>
           </div>
 
-          <div class="flex flex-col">
-            <label class="text-[9px] font-bold text-zinc-400 uppercase font-mono-custom mb-1">MRP (₹)</label>
-            <input type="number" id="admin-mrp-${product.id}" value="${product.originalPrice}" class="admin-price-input w-28 bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#ff5500] rounded-lg px-3 py-1.5 text-zinc-400 text-xs font-mono-custom font-bold focus:outline-none" min="0" step="10" />
+          <!-- Price block right-aligned -->
+          <div class="text-right shrink-0">
+            <div class="text-xs text-zinc-500 line-through font-mono-custom font-bold">₹${product.originalPrice ? product.originalPrice.toLocaleString('en-IN') : product.discountedPrice.toLocaleString('en-IN')}</div>
+            <div class="text-lg font-black text-white font-mono-custom leading-tight">₹${product.discountedPrice.toLocaleString('en-IN')}</div>
+            <div class="text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold">VALUE_SET</div>
           </div>
 
-          <div class="flex flex-col">
-            <label class="text-[9px] font-bold text-zinc-400 uppercase font-mono-custom mb-1">Stock Status</label>
-            <button onclick="toggleProductStock('${product.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold font-mono-custom transition-all ${product.inStock ? 'bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/80' : 'bg-red-950/70 border border-red-500/40 text-red-400 hover:bg-red-900/80'}">
-              ${product.inStock ? '● In Stock' : '○ Out of Stock'}
+          <!-- Actions stacked vertically -->
+          <div class="flex flex-col items-center gap-2 shrink-0">
+            <button onclick="openEditProductModal('${product.id}')" title="Edit Product" class="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-colors">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             </button>
-          </div>
-
-          <div class="flex flex-col justify-end">
-            <label class="text-[9px] font-bold text-transparent font-mono-custom mb-1">Action</label>
-            <button onclick="updateSingleProductPrice('${product.id}')" class="px-4 py-1.5 bg-[#ff5500] hover:bg-[#ff7a30] text-white text-xs font-black uppercase tracking-wider rounded-lg transition-all shadow-md active:scale-95 font-mono-custom flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Save</span>
+            <button onclick="deleteProduct('${product.id}')" title="Delete Product" class="p-2 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
             </button>
           </div>
         </div>
       </div>
     `;
   }).join("");
+}
+
+// --- BRANDS VIEW (Tab 2: Dynamically Read from state.products, Restyled Row Look) ---
+function renderAdminBrands() {
+  const container = document.getElementById("admin-brands-list");
+  if (!container) return;
+
+  const brandMap = new Map();
+  (state.products || []).forEach(p => {
+    const b = (p.brand || "GENERIC").trim().toUpperCase();
+    if (!brandMap.has(b)) {
+      brandMap.set(b, { name: b, count: 0 });
+    }
+    brandMap.get(b).count++;
+  });
+  const brands = Array.from(brandMap.values()).sort((a, b) => b.count - a.count);
+
+  if (brands.length === 0) {
+    container.innerHTML = `<div class="admin-card rounded-[20px] p-12 text-center text-zinc-500 font-mono-custom text-xs">No brands found in inventory.</div>`;
+    return;
+  }
+
+  container.innerHTML = brands.map(brand => `
+    <div class="admin-card rounded-[20px] p-4 sm:p-5 flex items-center justify-between gap-4 transition-all hover:border-[#333]">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-mono-custom font-black text-base text-[#ff5500]">
+          ${brand.name.slice(0, 2)}
+        </div>
+        <div>
+          <h4 class="text-base font-black text-white uppercase font-sans tracking-wide">${brand.name}</h4>
+          <span class="pill-neutral mt-1">CATALOGUE LINE</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <div class="text-center">
+          <div class="font-mono-custom text-base font-black text-white"># ${brand.count}</div>
+          <div class="text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold">MODELS IN INVENTORY</div>
+        </div>
+
+        <button onclick="filterInventoryByBrand('${brand.name}')" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-mono-custom font-bold text-zinc-200 border border-white/10 hover:border-white/20 transition-all flex items-center gap-1.5">
+          <span>View Models</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function filterInventoryByBrand(brandName) {
+  state.adminSearchQuery = brandName.toLowerCase();
+  const searchInput = document.getElementById("admin-search-input");
+  if (searchInput) searchInput.value = brandName;
+  switchProductTab("inventory");
+}
+
+// --- CATEGORIES TREE VIEW (Tab 3: Search, Table Header, 3-Zone Cards) ---
+function renderAdminCategoriesTree() {
+  const container = document.getElementById("admin-categories-tree");
+  if (!container) return;
+
+  const searchQuery = (document.getElementById("category-search-input")?.value || "").toLowerCase().trim();
+
+  if (!state.categories || state.categories.length === 0) {
+    loadAdminCategories();
+  }
+
+  const filtered = state.categories.filter(cat => {
+    if (!searchQuery) return true;
+    if (cat.name.toLowerCase().includes(searchQuery)) return true;
+    return (cat.subcategories || []).some(sub => sub.name.toLowerCase().includes(searchQuery));
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="admin-card rounded-[24px] p-12 text-center text-zinc-500 font-mono-custom text-xs">
+        No categories found matching "${searchQuery}".
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(cat => {
+    const linkedCount = (state.products || []).filter(p => p.category === cat.id).length;
+
+    const subsHtml = (cat.subcategories || []).map(sub => {
+      const isFeatured = !!sub.featured;
+      return `
+        <div class="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-zinc-800 bg-[#161616] hover:border-zinc-700 transition-colors shrink-0">
+          <button onclick="toggleCategoryFeatured('${cat.id}', '${sub.id}')" title="Toggle Featured Sub-category" class="p-1 rounded hover:bg-white/5 transition-colors">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFeatured ? '#ff5500' : 'none'}" stroke="${isFeatured ? '#ff5500' : '#71717a'}" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </button>
+
+          <img src="${sub.image || cat.image}" alt="${sub.name}" class="w-10 h-10 rounded-lg object-contain bg-white/5 p-1 border border-zinc-800 shrink-0" onerror="this.src='/logo.png'" />
+
+          <span class="text-xs font-bold text-white uppercase font-sans whitespace-nowrap">${sub.name}</span>
+
+          <div class="h-4 w-px bg-zinc-800"></div>
+
+          <button onclick="editSubCategoryPrompt('${cat.id}', '${sub.id}')" title="Rename Sub-category" class="p-1 text-zinc-500 hover:text-white transition-colors">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+
+          <div class="h-4 w-px bg-zinc-800"></div>
+
+          <button onclick="deleteSubCategory('${cat.id}', '${sub.id}')" title="Delete Sub-category" class="p-1 text-zinc-500 hover:text-red-400 transition-colors">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="admin-card rounded-[24px] p-5 sm:p-6 transition-all hover:border-[#333]">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          
+          <!-- ZONE 1: LEFT (~30%) -->
+          <div class="flex items-center gap-4 w-full lg:w-[28%] shrink-0">
+            <img src="${cat.image}" alt="${cat.name}" class="w-16 h-16 rounded-xl object-contain bg-white/5 p-1 border border-zinc-800 shrink-0" onerror="this.src='/logo.png'" />
+            <div class="min-w-0 flex-1">
+              <h4 class="text-base font-black text-white uppercase font-sans truncate">${cat.name}</h4>
+              <span class="pill-neutral mt-1">${linkedCount} LINKED</span>
+            </div>
+          </div>
+
+          <!-- ZONE 2: MIDDLE (Subcategory chips wrap) -->
+          <div class="flex flex-wrap items-center gap-2.5 flex-1 w-full lg:w-auto">
+            ${subsHtml}
+            <button onclick="openAddSubCategoryModal('${cat.id}')" title="Add Sub-category" class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border-2 border-dashed border-zinc-700 hover:border-[#ff5500] text-zinc-400 hover:text-white transition-all text-xs font-mono-custom font-bold uppercase">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>ADD SUB</span>
+            </button>
+          </div>
+
+          <!-- ZONE 3: RIGHT (Pencil & Bin) -->
+          <div class="flex lg:flex-col items-center justify-end gap-3 shrink-0 self-end lg:self-center w-full lg:w-auto pt-3 lg:pt-0 border-t lg:border-t-0 border-zinc-800">
+            <button onclick="editCategoryPrompt('${cat.id}')" title="Edit Main Category" class="p-2 rounded-xl text-zinc-500 hover:text-white hover:bg-white/10 transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </button>
+            <button onclick="deleteCategory('${cat.id}')" title="Delete Category" class="p-2 rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// --- PRODUCT ACTIONS (Featured Star, Edit, Delete, Stock Toggle) ---
+function toggleProductFeatured(productId) {
+  const product = state.products.find(p => p.id === productId);
+  if (!product) return;
+  product.featured = !product.featured;
+  saveProducts();
+  renderAdminProducts();
+  showToast(`${product.name.slice(0, 18)}... ${product.featured ? 'marked as Featured' : 'unfeatured'}.`);
+}
+
+function deleteProduct(productId) {
+  const product = state.products.find(p => p.id === productId);
+  if (!product) return;
+  if (!confirm(`Are you sure you want to delete "${product.name}" from inventory?`)) return;
+
+  state.products = state.products.filter(p => p.id !== productId);
+  saveProducts();
+  applyFilters();
+  renderAdminProducts();
+  renderAdminBrands();
+  renderAdminCategoriesTree();
+  showToast(`Product ${product.name.slice(0, 18)}... deleted.`);
+}
+
+function openEditProductModal(productId) {
+  const product = state.products.find(p => p.id === productId);
+  if (!product) return;
+
+  const idInput = document.getElementById("edit-product-id");
+  const nameInput = document.getElementById("edit-product-name");
+  const brandInput = document.getElementById("edit-product-brand");
+  const saleInput = document.getElementById("edit-product-sale-price");
+  const mrpInput = document.getElementById("edit-product-mrp");
+  const qtyInput = document.getElementById("edit-product-quantity");
+  const descInput = document.getElementById("edit-product-desc");
+
+  if (idInput) idInput.value = product.id;
+  if (nameInput) nameInput.value = product.name;
+  if (brandInput) brandInput.value = product.brand;
+  if (saleInput) saleInput.value = product.discountedPrice;
+  if (mrpInput) mrpInput.value = product.originalPrice;
+  if (qtyInput) qtyInput.value = product.quantity ?? (product.inStock ? 10 : 0);
+  if (descInput) descInput.value = product.description || "";
+
+  document.getElementById("modal-edit-product")?.classList.add("active");
+  document.getElementById("modal-edit-product-backdrop")?.classList.add("active");
+}
+
+function closeEditProductModal() {
+  document.getElementById("modal-edit-product")?.classList.remove("active");
+  document.getElementById("modal-edit-product-backdrop")?.classList.remove("active");
+}
+
+function handleSaveEditProduct(e) {
+  if (e) e.preventDefault();
+  const idInput = document.getElementById("edit-product-id");
+  const nameInput = document.getElementById("edit-product-name");
+  const brandInput = document.getElementById("edit-product-brand");
+  const saleInput = document.getElementById("edit-product-sale-price");
+  const mrpInput = document.getElementById("edit-product-mrp");
+  const qtyInput = document.getElementById("edit-product-quantity");
+  const descInput = document.getElementById("edit-product-desc");
+
+  const productId = idInput?.value;
+  const product = state.products.find(p => p.id === productId);
+  if (!product) return;
+
+  const newName = nameInput?.value.trim();
+  const newBrand = brandInput?.value.trim();
+  const newSale = parseInt(saleInput?.value, 10);
+  const newMrp = parseInt(mrpInput?.value, 10);
+  const newQty = parseInt(qtyInput?.value, 10);
+
+  if (!newName || !newBrand || isNaN(newSale) || newSale <= 0) {
+    showToast("Please fill all required fields correctly!");
+    return;
+  }
+
+  product.name = newName;
+  product.brand = newBrand.toUpperCase();
+  product.discountedPrice = newSale;
+  product.originalPrice = (!isNaN(newMrp) && newMrp >= newSale) ? newMrp : newSale;
+  product.quantity = isNaN(newQty) ? 0 : Math.max(0, newQty);
+  product.inStock = product.quantity > 0;
+  if (descInput) product.description = descInput.value.trim();
+
+  saveProducts();
+  applyFilters();
+  renderAdminProducts();
+  renderAdminBrands();
+  closeEditProductModal();
+  showToast(`Updated product "${product.name.slice(0, 18)}..." successfully!`);
 }
 
 function updateSingleProductPrice(productId) {
@@ -1310,6 +1989,12 @@ function toggleProductStock(productId) {
   if (!product) return;
 
   product.inStock = !product.inStock;
+  if (!product.inStock) {
+    product.quantity = 0;
+  } else if (!product.quantity || product.quantity <= 0) {
+    product.quantity = 10;
+  }
+
   saveProducts();
   applyFilters();
   renderAdminProducts();
@@ -1317,29 +2002,210 @@ function toggleProductStock(productId) {
 }
 
 function resetProductsToDefault() {
-  if (confirm("Reset all product prices and inventory to original factory defaults?")) {
-    state.products = JSON.parse(JSON.stringify(PRODUCTS_DATA));
-    saveProducts();
-    applyFilters();
-    renderAdminProducts();
-    initAddProductForm();
-    showToast("All product prices reset to factory defaults!");
+  const confirmed = confirm("Are you sure? This will erase all admin changes on this browser (custom products, categories, stock, and orders) and restore original factory defaults.");
+  if (!confirmed) return;
+
+  state.products = JSON.parse(JSON.stringify(PRODUCTS_DATA));
+  saveProducts();
+  state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+  saveAdminCategories();
+  localStorage.removeItem("ntt_orders");
+  applyFilters();
+  renderAdminProducts();
+  renderAdminBrands();
+  renderAdminCategoriesTree();
+  renderAdminDashboardStats();
+  renderAdminOrders();
+  initAddProductForm();
+  showToast("All admin changes on this browser erased and restored to defaults!");
+}
+
+// --- CATEGORY OPERATIONS (Featured Star, Add, Delete, Rename) ---
+function toggleCategoryFeatured(catId, subId) {
+  const cat = state.categories.find(c => c.id === catId);
+  if (!cat) return;
+  const sub = (cat.subcategories || []).find(s => s.id === subId);
+  if (!sub) return;
+
+  sub.featured = !sub.featured;
+  saveAdminCategories();
+  renderAdminCategoriesTree();
+  showToast(`Sub-category "${sub.name}" ${sub.featured ? 'featured' : 'unfeatured'}.`);
+}
+
+function deleteCategory(catId) {
+  const cat = state.categories.find(c => c.id === catId);
+  if (!cat) return;
+  if (!confirm(`Delete main category "${cat.name}" and its subcategories?`)) return;
+
+  state.categories = state.categories.filter(c => c.id !== catId);
+  saveAdminCategories();
+  renderAdminCategoriesTree();
+  populateAdminCategoryDropdown();
+  showToast(`Category "${cat.name}" deleted.`);
+}
+
+function deleteSubCategory(catId, subId) {
+  const cat = state.categories.find(c => c.id === catId);
+  if (!cat) return;
+  const sub = (cat.subcategories || []).find(s => s.id === subId);
+  if (!sub) return;
+  if (!confirm(`Delete sub-category "${sub.name}"?`)) return;
+
+  cat.subcategories = (cat.subcategories || []).filter(s => s.id !== subId);
+  saveAdminCategories();
+  renderAdminCategoriesTree();
+  showToast(`Sub-category "${sub.name}" removed.`);
+}
+
+function editCategoryPrompt(catId) {
+  const cat = state.categories.find(c => c.id === catId);
+  if (!cat) return;
+  const newName = prompt(`Enter new name for category "${cat.name}":`, cat.name);
+  if (newName && newName.trim()) {
+    cat.name = newName.trim();
+    saveAdminCategories();
+    renderAdminCategoriesTree();
+    populateAdminCategoryDropdown();
+    showToast(`Category renamed to "${cat.name}".`);
   }
 }
 
-// --- OWNER ADMIN: ADD NEW PRODUCT & MEDIA CAPTURE ENGINE ---
+function editSubCategoryPrompt(catId, subId) {
+  const cat = state.categories.find(c => c.id === catId);
+  if (!cat) return;
+  const sub = (cat.subcategories || []).find(s => s.id === subId);
+  if (!sub) return;
+  const newName = prompt(`Enter new name for sub-category "${sub.name}":`, sub.name);
+  if (newName && newName.trim()) {
+    sub.name = newName.trim();
+    saveAdminCategories();
+    renderAdminCategoriesTree();
+    showToast(`Sub-category renamed to "${sub.name}".`);
+  }
+}
+
+// --- MODAL CONTROLLERS & MEDIA CAPTURE ---
 let addProductInStock = true;
 let addProductStockManualOverride = false;
 let currentProductImageBase64 = "";
+let currentCategoryCoverBase64 = "";
+let currentSubCategoryThumbBase64 = "";
 let webcamStream = null;
+
+function openAddProductModal() {
+  document.getElementById("modal-add-product")?.classList.add("active");
+  document.getElementById("modal-add-product-backdrop")?.classList.add("active");
+  populateAdminBrandDropdown();
+  populateAdminCategoryDropdown();
+  autoSuggestSkuField();
+}
+
+function closeAddProductModal() {
+  document.getElementById("modal-add-product")?.classList.remove("active");
+  document.getElementById("modal-add-product-backdrop")?.classList.remove("active");
+}
+
+function openAddCategoryModal() {
+  document.getElementById("modal-add-category")?.classList.add("active");
+  document.getElementById("modal-add-category-backdrop")?.classList.add("active");
+}
+
+function closeAddCategoryModal() {
+  document.getElementById("modal-add-category")?.classList.remove("active");
+  document.getElementById("modal-add-category-backdrop")?.classList.remove("active");
+}
+
+function openAddSubCategoryModal(catId) {
+  const cat = state.categories.find(c => c.id === catId);
+  if (!cat) return;
+
+  const parentIdInput = document.getElementById("add-subcategory-parent-id");
+  const parentNameSpan = document.getElementById("add-subcategory-parent-name");
+  if (parentIdInput) parentIdInput.value = cat.id;
+  if (parentNameSpan) parentNameSpan.textContent = cat.name;
+
+  document.getElementById("modal-add-subcategory")?.classList.add("active");
+  document.getElementById("modal-add-subcategory-backdrop")?.classList.add("active");
+}
+
+function closeAddSubCategoryModal() {
+  document.getElementById("modal-add-subcategory")?.classList.remove("active");
+  document.getElementById("modal-add-subcategory-backdrop")?.classList.remove("active");
+}
+
+function toggleAdminMobileDrawer() {
+  const drawer = document.getElementById("admin-mobile-drawer");
+  const backdrop = document.getElementById("admin-mobile-backdrop");
+  if (drawer && backdrop) {
+    const isClosed = drawer.classList.contains("-translate-x-full");
+    if (isClosed) {
+      drawer.classList.remove("-translate-x-full");
+      backdrop.classList.remove("hidden");
+    } else {
+      drawer.classList.add("-translate-x-full");
+      backdrop.classList.add("hidden");
+    }
+  }
+}
+
+function closeAdminMobileDrawer() {
+  const drawer = document.getElementById("admin-mobile-drawer");
+  const backdrop = document.getElementById("admin-mobile-backdrop");
+  if (drawer) drawer.classList.add("-translate-x-full");
+  if (backdrop) backdrop.classList.add("hidden");
+}
 
 function initAddProductForm() {
   const form = document.getElementById("add-product-form");
   if (!form) return;
 
   autoSuggestSkuField();
+  populateAdminBrandDropdown();
   populateAdminCategoryDropdown();
   updateAddProductStockUI();
+}
+
+function populateAdminBrandDropdown() {
+  const select = document.getElementById("add-product-brand");
+  if (!select) return;
+
+  const brandSet = new Set();
+  (state.products || []).forEach(p => {
+    const b = (p.brand || "").trim().toUpperCase();
+    if (b) brandSet.add(b);
+  });
+  if (brandSet.size === 0) {
+    ["BOSCH", "MAKITA", "DEWALT", "HIKOKI", "STANLEY", "BLACK+DECKER"].forEach(b => brandSet.add(b));
+  }
+  const sortedBrands = Array.from(brandSet).sort();
+
+  const currentVal = select.value || (sortedBrands[0] || "BOSCH");
+  select.innerHTML = sortedBrands.map(b => `<option value="${b}">${b}</option>`).join("") +
+    `<option value="__new__">+ New brand</option>`;
+
+  if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
+    select.value = currentVal;
+  }
+  onBrandSelectChange(select);
+}
+
+function onBrandSelectChange(selectEl) {
+  const customInput = document.getElementById("add-product-custom-brand");
+  if (!selectEl) return;
+  if (selectEl.value === "__new__") {
+    if (customInput) {
+      customInput.classList.remove("hidden");
+      customInput.required = true;
+      customInput.focus();
+    }
+  } else {
+    if (customInput) {
+      customInput.classList.add("hidden");
+      customInput.required = false;
+      customInput.value = "";
+    }
+  }
 }
 
 function suggestNextSku() {
@@ -1369,40 +2235,58 @@ function populateAdminCategoryDropdown() {
   const select = document.getElementById("add-product-category");
   if (!select) return;
 
-  const categoriesMap = new Map();
-  categoriesMap.set("power-tools", "Power Tools");
-  categoriesMap.set("welding", "Welding Equipment");
-  categoriesMap.set("hand-tools", "Hand Tools");
-  categoriesMap.set("measuring", "Measuring & Precision");
-  categoriesMap.set("abrasives", "Cutting & Abrasives");
-
-  if (state.products) {
-    state.products.forEach(p => {
-      if (p.category && p.categoryName) {
-        categoriesMap.set(p.category, p.categoryName);
-      }
-    });
+  if (!state.categories || state.categories.length === 0) {
+    loadAdminCategories();
   }
 
   const currentVal = select.value || "power-tools";
-  select.innerHTML = Array.from(categoriesMap.entries()).map(([slug, name]) => {
-    return `<option value="${slug}" data-name="${name}">${name}</option>`;
+  select.innerHTML = state.categories.map(cat => {
+    return `<option value="${cat.id}" data-name="${cat.name}">${cat.name}</option>`;
   }).join("") + `<option value="__new__">+ Add New Category...</option>`;
 
-  if (currentVal && typeof select.querySelector === "function" && select.querySelector(`option[value="${currentVal}"]`)) {
+  if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
     select.value = currentVal;
   }
+
+  onCategorySelectChange(select);
 }
 
 function onCategorySelectChange(selectEl) {
+  const subCategorySelect = document.getElementById("add-product-subcategory");
   const customInput = document.getElementById("add-product-custom-category");
-  if (!customInput) return;
+
+  if (!selectEl) return;
+
   if (selectEl.value === "__new__") {
-    customInput.classList.remove("hidden");
-    customInput.focus();
-  } else {
+    if (customInput) {
+      customInput.classList.remove("hidden");
+      customInput.focus();
+    }
+    if (subCategorySelect) {
+      subCategorySelect.disabled = true;
+      subCategorySelect.classList.add("opacity-50", "cursor-not-allowed");
+      subCategorySelect.innerHTML = `<option value="">Select SubCategory...</option>`;
+    }
+    return;
+  }
+
+  if (customInput) {
     customInput.classList.add("hidden");
     customInput.value = "";
+  }
+
+  const selectedCat = (state.categories || []).find(c => c.id === selectEl.value);
+  if (subCategorySelect) {
+    if (selectedCat && selectedCat.subcategories && selectedCat.subcategories.length > 0) {
+      subCategorySelect.disabled = false;
+      subCategorySelect.classList.remove("opacity-50", "cursor-not-allowed");
+      subCategorySelect.innerHTML = `<option value="">Select SubCategory...</option>` +
+        selectedCat.subcategories.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+    } else {
+      subCategorySelect.disabled = true;
+      subCategorySelect.classList.add("opacity-50", "cursor-not-allowed");
+      subCategorySelect.innerHTML = `<option value="">No subcategories available</option>`;
+    }
   }
 }
 
@@ -1427,11 +2311,11 @@ function updateAddProductStockUI() {
   if (!btn || !dot || !label) return;
 
   if (addProductInStock) {
-    btn.className = "w-full py-2.5 px-4 rounded-xl text-xs font-bold font-mono-custom transition-all bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/80 flex items-center justify-center gap-2";
+    btn.className = "w-full py-3 px-4 rounded-2xl text-xs font-bold font-mono-custom transition-all bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/80 flex items-center justify-center gap-2";
     dot.className = "w-2 h-2 rounded-full bg-emerald-400";
     label.textContent = "● In Stock";
   } else {
-    btn.className = "w-full py-2.5 px-4 rounded-xl text-xs font-bold font-mono-custom transition-all bg-red-950/70 border border-red-500/40 text-red-400 hover:bg-red-900/80 flex items-center justify-center gap-2";
+    btn.className = "w-full py-3 px-4 rounded-2xl text-xs font-bold font-mono-custom transition-all bg-red-950/70 border border-red-500/40 text-red-400 hover:bg-red-900/80 flex items-center justify-center gap-2";
     dot.className = "w-2 h-2 rounded-full bg-red-400";
     label.textContent = "○ Out of Stock";
   }
@@ -1448,7 +2332,6 @@ function handleProductImageFile(file) {
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      // Downscale to max 800px on canvas to keep base64 within localStorage limits (~50-80KB)
       const maxDim = 800;
       let width = img.width;
       let height = img.height;
@@ -1588,9 +2471,11 @@ function handleAddNewProduct(e) {
   if (e) e.preventDefault();
 
   const titleInput = document.getElementById("add-product-title");
-  const brandInput = document.getElementById("add-product-brand");
+  const brandSelect = document.getElementById("add-product-brand");
+  const customBrandInput = document.getElementById("add-product-custom-brand");
   const skuInput = document.getElementById("add-product-sku");
   const categorySelect = document.getElementById("add-product-category");
+  const subcategorySelect = document.getElementById("add-product-subcategory");
   const customCategoryInput = document.getElementById("add-product-custom-category");
   const salePriceInput = document.getElementById("add-product-sale-price");
   const mrpInput = document.getElementById("add-product-mrp");
@@ -1598,12 +2483,16 @@ function handleAddNewProduct(e) {
   const descInput = document.getElementById("add-product-desc");
 
   const title = (titleInput?.value || "").trim();
-  const brand = (brandInput?.value || "").trim();
+  let brand = (brandSelect?.value || "").trim();
+  if (brand === "__new__") {
+    brand = (customBrandInput?.value || "").trim();
+  }
   const sku = (skuInput?.value || "").trim();
   const salePrice = parseInt(salePriceInput?.value, 10);
   const mrp = parseInt(mrpInput?.value, 10);
   const quantity = parseInt(quantityInput?.value, 10);
   const description = (descInput?.value || "").trim();
+  const subcategory = (subcategorySelect?.value || "").trim();
 
   // Validate required fields
   if (!title) {
@@ -1613,7 +2502,11 @@ function handleAddNewProduct(e) {
   }
   if (!brand) {
     showToast("Brand is required!");
-    brandInput?.focus();
+    if (brandSelect?.value === "__new__") {
+      customBrandInput?.focus();
+    } else {
+      brandSelect?.focus();
+    }
     return;
   }
   if (!sku) {
@@ -1654,9 +2547,17 @@ function handleAddNewProduct(e) {
     }
     categoryName = customName;
     categorySlug = customName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    
+    // Add to categories
+    state.categories.push({
+      id: categorySlug,
+      name: categoryName,
+      image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=400&q=80",
+      subcategories: []
+    });
+    saveAdminCategories();
   }
 
-  // Fallback image if none provided
   const image = currentProductImageBase64 || "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=600&q=80";
   const finalMrp = (!isNaN(mrp) && mrp >= salePrice) ? mrp : salePrice;
 
@@ -1665,6 +2566,7 @@ function handleAddNewProduct(e) {
     name: title,
     category: categorySlug,
     categoryName: categoryName,
+    subcategory: subcategory,
     brand: brand.toUpperCase(),
     originalPrice: finalMrp,
     discountedPrice: salePrice,
@@ -1680,7 +2582,8 @@ function handleAddNewProduct(e) {
       "Stock Units": String(quantity)
     },
     inStock: addProductInStock,
-    quantity: quantity
+    quantity: quantity,
+    featured: false
   };
 
   if (existingProductIndex !== -1) {
@@ -1692,10 +2595,14 @@ function handleAddNewProduct(e) {
   saveProducts();
   applyFilters();
   renderAdminProducts();
+  renderAdminBrands();
+  renderAdminCategoriesTree();
+  populateAdminBrandDropdown();
   populateAdminCategoryDropdown();
 
-  showToast(`Product "${title.slice(0, 18)}..." (${sku}) added to catalog!`);
+  showToast(`Product "${title.slice(0, 18)}..." (${sku}) saved!`);
   resetAddProductForm();
+  closeAddProductModal();
 }
 
 function resetAddProductForm() {
@@ -1710,7 +2617,116 @@ function resetAddProductForm() {
   const customCat = document.getElementById("add-product-custom-category");
   if (customCat && customCat.classList) customCat.classList.add("hidden");
 
+  const customBrand = document.getElementById("add-product-custom-brand");
+  if (customBrand && customBrand.classList) {
+    customBrand.classList.add("hidden");
+    customBrand.required = false;
+    customBrand.value = "";
+  }
+
+  const subSelect = document.getElementById("add-product-subcategory");
+  if (subSelect) {
+    subSelect.disabled = true;
+    subSelect.classList.add("opacity-50", "cursor-not-allowed");
+    subSelect.innerHTML = `<option value="">Select SubCategory...</option>`;
+  }
+
+  populateAdminBrandDropdown();
   autoSuggestSkuField();
+}
+
+// --- CATEGORY & SUB-CATEGORY CREATION HANDLERS ---
+function handleCategoryCoverFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    currentCategoryCoverBase64 = e.target.result;
+    const preview = document.getElementById("add-category-cover-preview");
+    const placeholder = document.getElementById("add-category-cover-placeholder");
+    if (preview) {
+      preview.src = currentCategoryCoverBase64;
+      preview.classList.remove("hidden");
+    }
+    if (placeholder) placeholder.classList.add("hidden");
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleAddNewCategory(e) {
+  if (e) e.preventDefault();
+  const nameInput = document.getElementById("add-category-name");
+  const name = (nameInput?.value || "").trim();
+  if (!name) {
+    showToast("Please enter a Category Name!");
+    return;
+  }
+
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const image = currentCategoryCoverBase64 || "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=400&q=80";
+
+  state.categories.push({
+    id: slug,
+    name: name,
+    image: image,
+    subcategories: []
+  });
+
+  saveAdminCategories();
+  renderAdminCategoriesTree();
+  populateAdminCategoryDropdown();
+  closeAddCategoryModal();
+  if (nameInput) nameInput.value = "";
+  currentCategoryCoverBase64 = "";
+  showToast(`Category "${name}" created successfully!`);
+}
+
+function handleSubCategoryThumbFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    currentSubCategoryThumbBase64 = e.target.result;
+    const preview = document.getElementById("add-subcategory-thumb-preview");
+    const placeholder = document.getElementById("add-subcategory-thumb-placeholder");
+    if (preview) {
+      preview.src = currentSubCategoryThumbBase64;
+      preview.classList.remove("hidden");
+    }
+    if (placeholder) placeholder.classList.add("hidden");
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleAddNewSubCategory(e) {
+  if (e) e.preventDefault();
+  const parentId = document.getElementById("add-subcategory-parent-id")?.value;
+  const nameInput = document.getElementById("add-subcategory-name");
+  const name = (nameInput?.value || "").trim();
+
+  if (!parentId || !name) {
+    showToast("Please enter a Sub-category Name!");
+    return;
+  }
+
+  const cat = state.categories.find(c => c.id === parentId);
+  if (!cat) return;
+
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const image = currentSubCategoryThumbBase64 || cat.image;
+
+  if (!cat.subcategories) cat.subcategories = [];
+  cat.subcategories.push({
+    id: slug,
+    name: name,
+    image: image,
+    featured: false
+  });
+
+  saveAdminCategories();
+  renderAdminCategoriesTree();
+  closeAddSubCategoryModal();
+  if (nameInput) nameInput.value = "";
+  currentSubCategoryThumbBase64 = "";
+  showToast(`Sub-category "${name}" added to ${cat.name}!`);
 }
 
 // --- ADD TO CART QUANTITY SELECTION MODAL LOGIC ---
@@ -1837,5 +2853,41 @@ window.isAdminLoggedIn = isAdminLoggedIn;
 window.getAdminPasswordHash = getAdminPasswordHash;
 window.getProductCartQty = getProductCartQty;
 
-
-
+// New Admin Redesign Exports
+window.switchAdminSection = switchAdminSection;
+window.switchProductTab = switchProductTab;
+window.renderAdminDashboardStats = renderAdminDashboardStats;
+window.renderAdminOrders = renderAdminOrders;
+window.renderAdminBrands = renderAdminBrands;
+window.filterInventoryByBrand = filterInventoryByBrand;
+window.renderAdminCategoriesTree = renderAdminCategoriesTree;
+window.toggleProductFeatured = toggleProductFeatured;
+window.deleteProduct = deleteProduct;
+window.openEditProductModal = openEditProductModal;
+window.closeEditProductModal = closeEditProductModal;
+window.handleSaveEditProduct = handleSaveEditProduct;
+window.toggleCategoryFeatured = toggleCategoryFeatured;
+window.deleteCategory = deleteCategory;
+window.deleteSubCategory = deleteSubCategory;
+window.editCategoryPrompt = editCategoryPrompt;
+window.editSubCategoryPrompt = editSubCategoryPrompt;
+window.openAddProductModal = openAddProductModal;
+window.closeAddProductModal = closeAddProductModal;
+window.openAddCategoryModal = openAddCategoryModal;
+window.closeAddCategoryModal = closeAddCategoryModal;
+window.handleCategoryCoverFile = handleCategoryCoverFile;
+window.handleAddNewCategory = handleAddNewCategory;
+window.openAddSubCategoryModal = openAddSubCategoryModal;
+window.closeAddSubCategoryModal = closeAddSubCategoryModal;
+window.handleSubCategoryThumbFile = handleSubCategoryThumbFile;
+window.handleAddNewSubCategory = handleAddNewSubCategory;
+window.toggleAdminMobileDrawer = toggleAdminMobileDrawer;
+window.closeAdminMobileDrawer = closeAdminMobileDrawer;
+window.loadAdminCategories = loadAdminCategories;
+window.saveAdminCategories = saveAdminCategories;
+window.loadAdminOrders = loadAdminOrders;
+window.saveAdminOrders = saveAdminOrders;
+window.recordOrderLocally = recordOrderLocally;
+window.updateOrderStatus = updateOrderStatus;
+window.populateAdminBrandDropdown = populateAdminBrandDropdown;
+window.onBrandSelectChange = onBrandSelectChange;
