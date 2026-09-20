@@ -2,7 +2,7 @@
 <html lang="en" class="h-full antialiased">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Narindra Express - Professional Grade Tools & Heavy Machinery</title>
   <meta name="description" content="Narindra Express offers products designed to meet the needs of professionals and DIY enthusiasts alike. Built to last, providing reliability and performance for all your industrial projects." />
   <meta name="keywords" content="narindra express, industrial tools india, hardware store kotkapura, power tools online, bosch tools india, makita angle grinder, dewalt drill machine, esab welding machine, mitutoyo vernier caliper" />
@@ -14,10 +14,10 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="logo.png" />
 
-  <!-- Google Fonts: Baloo 2 & Inter -->
+  <!-- Google Fonts: Barlow Condensed 800 Italic, Baloo 2 & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800&family=Baloo+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS CDN & Custom Black-White-Orange Theme Stylesheet -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -65,7 +65,7 @@
         </nav>
 
         <!-- Right Utilities & Call Hotline -->
-        <div class="flex items-center gap-3 sm:gap-3.5 flex-shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           
           <!-- Direct Sales Phone Desk -->
           <a href="tel:+918283848559" title="Call Sales Desk: +91 82838 48559" class="hidden xl:flex items-center gap-1.5 bg-[#ff5500]/10 border border-[#ff5500]/30 text-[#ff5500] px-2.5 py-1 rounded-full text-[11px] font-bold font-mono-custom hover:bg-[#ff5500]/20 transition-colors shadow-sm animate-wiggle opacity-80 hover:opacity-100 whitespace-nowrap h-8 flex-shrink-0">
@@ -82,17 +82,22 @@
           </a>
 
           <!-- Owner Admin Portal Direct Route Link -->
-          <a href="/admin" title="Owner Admin Portal" class="h-8 w-8 sm:w-auto px-0 sm:px-2.5 py-1 bg-[#ff5500]/10 hover:bg-[#ff5500]/20 border border-[#ff5500]/30 rounded-xl text-[#ff5500] transition-all active:scale-95 flex items-center justify-center gap-1.5 text-[11px] font-bold font-mono-custom opacity-80 hover:opacity-100 whitespace-nowrap flex-shrink-0">
+          <a href="/admin" title="Owner Admin Portal" class="hidden md:flex h-9 px-2.5 py-1 bg-[#ff5500]/10 hover:bg-[#ff5500]/20 border border-[#ff5500]/30 rounded-xl text-[#ff5500] transition-all active:scale-95 items-center justify-center gap-1.5 text-[11px] font-bold font-mono-custom opacity-80 hover:opacity-100 whitespace-nowrap flex-shrink-0">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <span class="hidden 2xl:inline">Owner Portal</span>
-            <span class="hidden sm:inline 2xl:hidden">Admin</span>
+            <span class="inline 2xl:hidden">Admin</span>
           </a>
 
-          <!-- Cart / Bag Trigger Button with Items Count Label -->
-          <button id="btn-open-cart" class="relative h-8 px-2 sm:px-2.5 xl:px-3 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-zinc-300 hover:text-white transition-all active:scale-95 animate-squish flex-shrink-0" title="View Shopping Bag">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-            <span id="cart-btn-label" class="cart-btn-label">CART · 0 ITEMS</span>
-            <span id="cart-badge" class="bg-[#ff5500] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-[#0a0a0a]" style="display:none;">0</span>
+          <!-- Cart / Bag Trigger Button with Items Count Label (ALWAYS VISIBLE OUTSIDE MENU) -->
+          <button id="btn-open-cart" class="relative h-11 px-3 sm:px-3.5 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-zinc-300 hover:text-white transition-all active:scale-95 animate-squish flex-shrink-0 min-w-[44px] min-h-[44px]" title="View Shopping Bag" aria-label="Shopping Bag">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <span id="cart-btn-label" class="cart-btn-label hidden sm:inline">CART · 0 ITEMS</span>
+            <span id="cart-badge" class="bg-[#ff5500] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full border border-[#0a0a0a]" style="display:none;">0</span>
+          </button>
+
+          <!-- Mobile Hamburger Toggle Button (mobile only) -->
+          <button id="btn-mobile-menu" type="button" class="md:hidden flex items-center justify-center w-11 h-11 rounded-xl bg-white/5 border border-white/10 text-zinc-300 hover:text-white hover:border-[#ff5500] transition-all active:scale-95 flex-shrink-0" aria-label="Open Navigation Menu" title="Open Menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
         </div>
 
@@ -100,16 +105,75 @@
     </div>
   </header>
 
+  <!-- Mobile Navigation Drawer & Backdrop -->
+  <div id="mobile-nav-backdrop" class="mobile-nav-backdrop"></div>
+  <div id="mobile-nav-drawer" class="mobile-nav-drawer p-6">
+    <div class="flex items-center justify-between pb-5 border-b border-[#2a2a2a]">
+      <div class="flex items-center gap-2.5">
+        <div class="h-9 w-9 bg-white/5 rounded-xl p-1 border border-white/10">
+          <img src="logo.png" alt="Logo" class="w-full h-full object-contain" />
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xs font-black tracking-tight text-white uppercase font-display">Narindra Express</span>
+          <span class="text-[9px] font-mono-custom text-[#ff5500] uppercase font-bold">Menu</span>
+        </div>
+      </div>
+      <button id="btn-close-mobile-menu" class="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white rounded-xl hover:bg-white/5 transition-colors" aria-label="Close menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Navigation Routes -->
+    <nav class="flex flex-col gap-1.5 py-5 border-b border-[#2a2a2a]">
+      <a href="/" class="mobile-nav-item py-3 px-4 rounded-xl text-sm font-black uppercase tracking-wider text-[#ff5500] bg-[#ff5500]/10 flex items-center justify-between">
+        <span>Home</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+      <a href="/products" class="mobile-nav-item py-3 px-4 rounded-xl text-sm font-black uppercase tracking-wider text-zinc-200 hover:text-white hover:bg-white/5 flex items-center justify-between transition-colors">
+        <span>Products</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+      <a href="/about" class="mobile-nav-item py-3 px-4 rounded-xl text-sm font-black uppercase tracking-wider text-zinc-200 hover:text-white hover:bg-white/5 flex items-center justify-between transition-colors">
+        <span>About Us</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+      <a href="/contact" class="mobile-nav-item py-3 px-4 rounded-xl text-sm font-black uppercase tracking-wider text-zinc-200 hover:text-white hover:bg-white/5 flex items-center justify-between transition-colors">
+        <span>Contact</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+    </nav>
+
+    <!-- Direct Channels & Owner Portal -->
+    <div class="flex flex-col gap-3 pt-5">
+      <span class="text-[10px] font-mono-custom font-bold uppercase tracking-widest text-zinc-500 mb-0.5">Quick Assistance</span>
+      <a href="tel:+918283848559" class="w-full min-h-[48px] px-4 rounded-xl bg-[#ff5500]/10 border border-[#ff5500]/30 text-[#ff5500] font-black uppercase text-xs tracking-wider flex items-center gap-3 active:scale-95 transition-all">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span>Call Hotline</span>
+      </a>
+      <a href="https://wa.me/918283848559?text=Hi%20Narindra%20Express%2C%20I%20have%20an%20inquiry." target="_blank" class="w-full min-h-[48px] px-4 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 font-black uppercase text-xs tracking-wider flex items-center gap-3 active:scale-95 transition-all">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.162 4.24 4.316-1.131z"/></svg>
+        <span>WhatsApp Desk</span>
+      </a>
+      <a href="/admin" class="w-full min-h-[48px] px-4 rounded-xl bg-white/5 border border-white/10 text-zinc-300 hover:text-white font-black uppercase text-xs tracking-wider flex items-center gap-3 active:scale-95 transition-all mt-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Owner Portal</span>
+      </a>
+    </div>
+  </div>
+
   <!-- ================= HERO SECTION ================= -->
   <section class="relative min-h-screen flex items-center pt-28 pb-16 overflow-hidden bg-[#0a0a0a] border-b border-[#2a2a2a]">
     
-    <!-- Background Image with Dark Vignette Overlay -->
+    <!-- Background Image with Dark Vignette Overlay (WebP Optimized) -->
     <div class="absolute inset-0 z-0">
       <div class="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/90 to-[#0a0a0a]/60 z-10"></div>
-      <img src="hero.png" alt="Industrial Backdrop" class="w-full h-full object-cover opacity-35 grayscale filter brightness-75" />
+      <picture>
+        <source srcset="hero.webp" type="image/webp" />
+        <img src="hero.png" alt="Industrial Backdrop" class="w-full h-full object-cover opacity-35 grayscale filter brightness-75" />
+      </picture>
     </div>
 
-    <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-2 items-center gap-12 pt-8">
+    <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-2 items-center gap-10 lg:gap-12 pt-4 sm:pt-8">
       
       <!-- Hero Left Text -->
       <div class="flex flex-col">
@@ -118,7 +182,7 @@
           India's Biggest Online Tools Store
         </div>
 
-        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white uppercase italic leading-[0.95] mb-4 font-display animate-slide-up delay-300">
+        <h1 class="hero-heading text-white mb-4 animate-slide-up delay-300">
           Pro-Grade <br />
           <span class="text-[#ff5500] italic">Machinery.</span> <br />
           <span class="white-stroke text-transparent">Direct Access.</span>
@@ -133,18 +197,18 @@
         </p>
 
         <!-- CTA Buttons (Dominant Primary: Shop Collection -> /products) -->
-        <div class="flex flex-wrap gap-4 mb-10 animate-slide-up delay-500">
-          <a href="/products" class="btn-orange text-xs font-black uppercase tracking-widest px-8 py-4 flex items-center gap-3 animate-squish shadow-xl">
+        <div class="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-4 mb-8 sm:mb-10 w-full animate-slide-up delay-500">
+          <a href="/products" class="btn-orange text-xs font-black uppercase tracking-widest px-8 py-3.5 min-h-[48px] flex items-center justify-center gap-3 animate-squish shadow-xl w-full sm:w-auto">
             <span>Shop Collection</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>
 
-          <a href="tel:+918283848559" class="bg-[#161616]/80 hover:bg-[#1e1e1e] text-zinc-300 hover:text-white border border-[#2a2a2a] text-xs font-black uppercase tracking-widest px-6 py-4 flex items-center gap-2.5 rounded-xl transition-all shadow-md opacity-90">
+          <a href="tel:+918283848559" class="bg-[#161616]/80 hover:bg-[#1e1e1e] text-zinc-300 hover:text-white border border-[#2a2a2a] text-xs font-black uppercase tracking-widest px-6 py-3.5 min-h-[48px] flex items-center justify-center gap-2.5 rounded-xl transition-all shadow-md opacity-90 w-full sm:w-auto">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             <span>Call Hotline</span>
           </a>
 
-          <a href="https://wa.me/918283848559?text=Hi%20Narindra%20Express%2C%20I%20have%20an%20inquiry." target="_blank" class="bg-[#161616]/80 hover:bg-[#1e1e1e] text-emerald-400 border border-emerald-500/30 text-xs font-black uppercase tracking-widest px-6 py-4 flex items-center gap-2.5 rounded-xl transition-all shadow-md opacity-90">
+          <a href="https://wa.me/918283848559?text=Hi%20Narindra%20Express%2C%20I%20have%20an%20inquiry." target="_blank" class="bg-[#161616]/80 hover:bg-[#1e1e1e] text-emerald-400 border border-emerald-500/30 text-xs font-black uppercase tracking-widest px-6 py-3.5 min-h-[48px] flex items-center justify-center gap-2.5 rounded-xl transition-all shadow-md opacity-90 w-full sm:w-auto">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.162 4.24 4.316-1.131z"/></svg>
             <span>WhatsApp Chat</span>
           </a>
@@ -164,20 +228,20 @@
 
       </div>
 
-      <!-- Hero Right Decorative Badge -->
-      <div class="hidden lg:flex flex-col items-center justify-center animate-scale-in delay-400">
-        <div class="glass-card p-8 rounded-3xl border border-[#2a2a2a] max-w-md w-full text-center relative overflow-hidden shadow-2xl">
-          <div class="w-16 h-16 rounded-2xl bg-[#ff5500]/15 text-[#ff5500] flex items-center justify-center mx-auto mb-4 border border-[#ff5500]/30">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <!-- Hero Direct Trade Desk Card (Below hero text on mobile, right column on desktop) -->
+      <div class="flex flex-col items-center justify-center animate-scale-in delay-400 w-full mt-6 lg:mt-0">
+        <div class="glass-card p-6 sm:p-8 rounded-3xl border border-[#2a2a2a] max-w-md w-full text-center relative overflow-hidden shadow-2xl">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#ff5500]/15 text-[#ff5500] flex items-center justify-center mx-auto mb-4 border border-[#ff5500]/30">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           </div>
           <h3 class="text-xl font-black uppercase text-white tracking-tight mb-2 font-display">Direct Trade Desk</h3>
           <p class="text-xs text-zinc-400 mb-6 font-medium">Need custom quotes or immediate bulk tool procurement? Speak directly with our trade specialists.</p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-            <a href="tel:+918283848559" class="btn-call-now py-3 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
+            <a href="tel:+918283848559" class="btn-call-now py-3.5 min-h-[48px] text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
               <span>Call Hotline</span>
             </a>
-            <a href="https://wa.me/918283848559?text=Hi%20Narindra%20Express%2C%20I%20have%20an%20inquiry." target="_blank" class="bg-[#161616] hover:bg-[#1e1e1e] text-emerald-400 border border-emerald-500/50 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-colors">
+            <a href="https://wa.me/918283848559?text=Hi%20Narindra%20Express%2C%20I%20have%20an%20inquiry." target="_blank" class="bg-[#161616] hover:bg-[#1e1e1e] text-emerald-400 border border-emerald-500/50 py-3.5 min-h-[48px] rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-colors">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.162 4.24 4.316-1.131z"/></svg>
               <span>WhatsApp</span>
             </a>
@@ -222,7 +286,7 @@
       </div>
 
       <!-- Featured Product Cards Grid -->
-      <div id="featured-products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div id="featured-products-grid" class="responsive-product-grid gap-3 sm:gap-6 mb-10">
         <!-- Rendered via app.js -->
       </div>
 

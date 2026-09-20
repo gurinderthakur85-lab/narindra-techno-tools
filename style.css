@@ -1,5 +1,5 @@
 /* Narindra Express - Design System & Black White Orange Theme (Ref: narindra-insta.vercel.app) */
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800&family=Baloo+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
 
 :root {
   --color-zinc-950: #0a0a0a;
@@ -21,6 +21,7 @@
   --narindra-orange-glow: rgba(255, 85, 0, 0.35);
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-hero: 'Barlow Condensed', sans-serif;
   --font-display: 'Baloo 2', 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
@@ -97,12 +98,27 @@ body {
   border: 1px solid var(--color-zinc-700);
 }
 
+.hero-heading {
+  font-family: var(--font-hero);
+  font-weight: 800;
+  font-style: italic;
+  font-size: clamp(2.2rem, 8vw, 4.2rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
 .orange-stroke {
   -webkit-text-stroke: 1px var(--narindra-orange);
+  paint-order: stroke fill;
 }
 
 .white-stroke {
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.25);
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.6);
+  paint-order: stroke fill;
+  font-family: var(--font-hero);
+  font-weight: 800;
+  font-style: italic;
 }
 
 /* Glowing Effects */
@@ -233,6 +249,13 @@ header {
   gap: 0.5rem;
 }
 
+@media (max-width: 640px) {
+  .action-buttons-group {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+}
+
 /* ADD TO CART BUTTON */
 .btn-cart {
   display: inline-flex;
@@ -262,8 +285,8 @@ header {
   transform: scale(0.97);
 }
 
-/* BUY NOW & CALL NOW BUTTON - Orange Theme Glow */
-.btn-call-now, .btn-buy-now {
+/* CALL NOW BUTTON - Orange Theme Glow */
+.btn-call-now {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -283,7 +306,7 @@ header {
   animation: callPulse 2.5s infinite;
 }
 
-.btn-call-now:hover, .btn-buy-now:hover {
+.btn-call-now:hover {
   background: linear-gradient(135deg, var(--narindra-orange-light), var(--narindra-orange));
   border-color: var(--narindra-orange-light);
   box-shadow: 0 4px 18px rgba(255, 85, 0, 0.5);
@@ -291,6 +314,38 @@ header {
 }
 
 .btn-call-now:active {
+  transform: scale(0.97);
+}
+
+/* BUY NOW BUTTON - Clean without outer glow / shadow */
+.btn-buy-now {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 0.6rem;
+  border: 1px solid var(--narindra-orange);
+  background: linear-gradient(135deg, var(--narindra-orange), var(--narindra-orange-dark));
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+.btn-buy-now:hover {
+  background: linear-gradient(135deg, var(--narindra-orange-light), var(--narindra-orange));
+  border-color: var(--narindra-orange-light);
+  box-shadow: none !important;
+  transform: translateY(-1px);
+}
+
+.btn-buy-now:active {
   transform: scale(0.97);
 }
 
@@ -356,13 +411,15 @@ header {
   border-left: 1px solid var(--color-zinc-700);
   z-index: 101;
   transform: translateX(100%);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  visibility: hidden;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s;
   display: flex;
   flex-direction: column;
 }
 
 .drawer-panel.active {
   transform: translateX(0);
+  visibility: visible;
 }
 
 /* Call Modal */
@@ -774,6 +831,122 @@ header {
   color: #ffffff;
   white-space: nowrap;
 }
+
+/* Blinkit-Style Cart Stepper Touch Enhancements */
+.stepper-container {
+  min-height: 44px;
+}
+
+.stepper-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  min-width: 38px;
+  min-height: 38px;
+}
+
+/* Responsive Product Grid */
+.responsive-product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 339.98px) {
+  .responsive-product-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 640px) {
+  .responsive-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-product-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+/* Mobile Navigation Drawer & Backdrop */
+.mobile-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 90;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-nav-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-nav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 86%;
+  max-width: 360px;
+  background: #121212;
+  border-left: 1px solid var(--color-zinc-700);
+  z-index: 95;
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-nav-drawer.active {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.mobile-nav-item {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+}
+
+/* Mobile Performance & Tap Targets */
+@media (max-width: 768px) {
+  .glass-header {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+  
+  .glass-card {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+  
+  .btn-orange,
+  .btn-call-now,
+  .btn-buy-now,
+  .btn-cart {
+    min-height: 44px;
+  }
+}
+
+/* Global overflow containment to eliminate horizontal scrolling */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+}
+
 
 
 

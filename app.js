@@ -423,6 +423,35 @@ function setupEventListeners() {
   document.getElementById("btn-close-cart")?.addEventListener("click", closeCartDrawer);
   document.getElementById("cart-backdrop")?.addEventListener("click", closeCartDrawer);
 
+  // Mobile Navigation Drawer open/close
+  const btnMobileMenu = document.getElementById("btn-mobile-menu");
+  const btnCloseMobileMenu = document.getElementById("btn-close-mobile-menu");
+  const mobileNavBackdrop = document.getElementById("mobile-nav-backdrop");
+  const mobileNavDrawer = document.getElementById("mobile-nav-drawer");
+
+  function openMobileNav() {
+    mobileNavBackdrop?.classList.add("active");
+    mobileNavDrawer?.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeMobileNav() {
+    mobileNavBackdrop?.classList.remove("active");
+    mobileNavDrawer?.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+
+  btnMobileMenu?.addEventListener("click", openMobileNav);
+  btnCloseMobileMenu?.addEventListener("click", closeMobileNav);
+  mobileNavBackdrop?.addEventListener("click", closeMobileNav);
+
+  document.querySelectorAll(".mobile-nav-item, #mobile-nav-drawer a")?.forEach(link => {
+    link.addEventListener("click", closeMobileNav);
+  });
+
+  window.openMobileNav = openMobileNav;
+  window.closeMobileNav = closeMobileNav;
+
   // Call Modal backdrop close
   document.getElementById("call-modal-backdrop")?.addEventListener("click", closeCallModal);
   document.getElementById("btn-close-call-modal")?.addEventListener("click", closeCallModal);
