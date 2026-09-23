@@ -1167,6 +1167,19 @@ function handleCheckoutSubmit(e) {
     waBtn.href = `https://wa.me/918283848559?text=${encodeURIComponent(waMessage)}`;
   }
 
+  // Dual-channel notification: Real email dispatch to Narindraexpress1@gmail.com simultaneously
+  dispatchOrderEmail({
+    id: orderId,
+    customerName: name,
+    phone: phone,
+    altPhone: altPhone,
+    address: fullAddressStr,
+    itemsText: itemsText,
+    items: state.checkoutItems,
+    subtotal: subtotal,
+    grandTotal: grandTotal
+  });
+
   // Clear cart & update UI
   state.cart = [];
   saveCart();
@@ -1210,6 +1223,57 @@ function handleCheckoutSubmit(e) {
 function closeOrderSuccessModal() {
   document.getElementById("order-success-backdrop")?.classList.remove("active");
   document.getElementById("order-success-modal")?.classList.remove("active");
+}
+
+// --- DUAL-CHANNEL REAL EMAIL DISPATCH ENGINE ---
+async function dispatchOrderEmail(orderData) {
+  const emailStatusEl = document.getElementById("success-email-status");
+  if (emailStatusEl) {
+    emailStatusEl.textContent = "Dispatching...";
+  }
+
+  const payload = {
+    _subject: `⚡ NEW ORDER PLACED! - Narindra Express (#${orderData.id || 'ORDER'})`,
+    _template: "table",
+    _captcha: "false",
+    Order_ID: orderData.id || `NTT-${Date.now().toString().slice(-6)}`,
+    Customer_Name: orderData.customerName || "Customer",
+    Customer_Phone: orderData.phone || "N/A",
+    Alt_Phone: orderData.altPhone || "N/A",
+    Delivery_Address: orderData.address || "N/A",
+    Payment_Method: "Cash on Delivery (COD)",
+    Ordered_Items: orderData.itemsText || "N/A",
+    Items_Subtotal: `₹${(orderData.subtotal || 0).toLocaleString('en-IN')}`,
+    Delivery_Charge: "₹50 (Flat Delivery)",
+    Total_Amount_Payable: `₹${(orderData.grandTotal || 0).toLocaleString('en-IN')}`,
+    Order_Timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+  };
+
+  try {
+    const res = await fetch("https://formsubmit.co/ajax/Narindraexpress1@gmail.com", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await res.json().catch(() => ({}));
+    console.log("[Narindra Dual-Channel] Order email dispatch result:", result);
+
+    if (emailStatusEl) {
+      emailStatusEl.textContent = "Dispatched (Narindraexpress1@gmail.com)";
+      emailStatusEl.className = "text-emerald-400 font-bold truncate max-w-[200px]";
+    }
+    return { success: true, result };
+  } catch (err) {
+    console.warn("[Narindra Dual-Channel] Email dispatch warning:", err);
+    if (emailStatusEl) {
+      emailStatusEl.textContent = "Queued to Narindraexpress1@gmail.com";
+    }
+    return { success: false, error: err };
+  }
 }
 
 // --- TOAST NOTIFICATIONS ---
@@ -1369,6 +1433,15 @@ function updateOrderStatus(orderId, newStatus) {
   renderAdminOrders();
   renderAdminDashboardStats();
   showToast(`Order ${orderId} status set to ${newStatus}`);
+}
+
+function clearAdminOrders(forceNoConfirm) {
+  if (forceNoConfirm || confirm("Clear all orders from the admin dashboard?")) {
+    saveAdminOrders([]);
+    renderAdminDashboardStats();
+    renderAdminOrders();
+    showToast("All orders wiped successfully.");
+  }
 }
 
 // --- ADMIN SPA NAVIGATION ENGINE ---
@@ -2892,5 +2965,7 @@ window.loadAdminOrders = loadAdminOrders;
 window.saveAdminOrders = saveAdminOrders;
 window.recordOrderLocally = recordOrderLocally;
 window.updateOrderStatus = updateOrderStatus;
+window.clearAdminOrders = clearAdminOrders;
+window.dispatchOrderEmail = dispatchOrderEmail;
 window.populateAdminBrandDropdown = populateAdminBrandDropdown;
 window.onBrandSelectChange = onBrandSelectChange;

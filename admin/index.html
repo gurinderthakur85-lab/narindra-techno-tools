@@ -366,7 +366,12 @@
       <section id="admin-section-orders" class="hidden space-y-6">
         <div class="flex items-center justify-between p-4 bg-[#111111] rounded-2xl border border-zinc-800">
           <span class="text-xs font-mono-custom uppercase text-zinc-400 font-bold">FULFILLMENT DISPATCH PIPELINE</span>
-          <span class="pill-neutral">BROWSER AUDIT LOG</span>
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="clearAdminOrders()" class="px-3 py-1.5 rounded-lg bg-red-950/60 border border-red-500/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 text-[10px] font-mono-custom font-bold uppercase tracking-wider transition-colors">
+              Clear All Orders
+            </button>
+            <span class="pill-neutral">BROWSER AUDIT LOG</span>
+          </div>
         </div>
 
         <!-- Orders Cards Container -->
