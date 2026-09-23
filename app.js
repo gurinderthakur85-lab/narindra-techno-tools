@@ -1236,6 +1236,8 @@ async function dispatchOrderEmail(orderData) {
     _subject: `⚡ NEW ORDER PLACED! - Narindra Express (#${orderData.id || 'ORDER'})`,
     _template: "table",
     _captcha: "false",
+    _url: "https://narindraexpress.in",
+    Store_Domain: "narindraexpress.in",
     Order_ID: orderData.id || `NTT-${Date.now().toString().slice(-6)}`,
     Customer_Name: orderData.customerName || "Customer",
     Customer_Phone: orderData.phone || "N/A",
