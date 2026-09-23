@@ -12,7 +12,9 @@
   <meta property="og:title" content="Narindra Express - Since 1998" />
   <meta property="og:description" content="Professional-grade hardware for the modern tradesman. Heavy machinery, power tools, and welding equipment." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.narindraexpress.in" />
   <meta property="og:image" content="logo.png" />
+  <link rel="canonical" href="https://www.narindraexpress.in" />
 
   <!-- Google Fonts: Barlow Condensed 800 Italic, Baloo 2 & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -688,8 +690,19 @@
           <input type="tel" id="checkout-alt-phone" placeholder="e.g. 98123 45678" class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500] font-mono-custom" />
         </div>
         <div>
+          <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">Email Address (Optional)</label>
+          <input type="email" id="checkout-email" placeholder="e.g. customer@example.com" class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500]" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
           <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">Pincode / Zip Code *</label>
           <input type="text" id="checkout-pincode" placeholder="e.g. 151204" maxlength="6" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500] font-mono-custom" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">City / Town *</label>
+          <input type="text" id="checkout-city" placeholder="e.g. Kotkapura" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500]" />
         </div>
       </div>
 
@@ -698,24 +711,18 @@
         <textarea id="checkout-address" rows="2" placeholder="e.g. Shop No. 14, Main Hardware Market, Near Bus Stand" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500]"></textarea>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">City / Town *</label>
-          <input type="text" id="checkout-city" placeholder="e.g. Kotkapura" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500]" />
-        </div>
-        <div>
-          <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">State *</label>
-          <select id="checkout-state" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#ff5500]">
-            <option value="Punjab" selected>Punjab</option>
-            <option value="Haryana">Haryana</option>
-            <option value="Delhi">Delhi NCR</option>
-            <option value="Himachal Pradesh">Himachal Pradesh</option>
-            <option value="Rajasthan">Rajasthan</option>
-            <option value="Uttar Pradesh">Uttar Pradesh</option>
-            <option value="Jammu & Kashmir">Jammu & Kashmir</option>
-            <option value="Other">Other State</option>
-          </select>
-        </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">State *</label>
+        <select id="checkout-state" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#ff5500]">
+          <option value="Punjab" selected>Punjab</option>
+          <option value="Haryana">Haryana</option>
+          <option value="Delhi">Delhi NCR</option>
+          <option value="Himachal Pradesh">Himachal Pradesh</option>
+          <option value="Rajasthan">Rajasthan</option>
+          <option value="Uttar Pradesh">Uttar Pradesh</option>
+          <option value="Jammu & Kashmir">Jammu & Kashmir</option>
+          <option value="Other">Other State</option>
+        </select>
       </div>
 
       <!-- Payment Method Selection (Cash on Delivery Only - Fix 3) -->
@@ -784,7 +791,7 @@
     </div>
 
     <!-- Dual Notification Status Panel -->
-    <div class="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1.5 text-[11px] font-mono-custom">
+    <div class="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1.5 text-[11px] font-mono-custom mb-3">
       <div class="flex items-center justify-between text-zinc-300">
         <span class="flex items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Email Dispatch:</span>
         <span id="success-email-status" class="text-emerald-400 font-bold truncate max-w-[140px] sm:max-w-[180px]">Narindraexpress1@gmail.com</span>
@@ -792,6 +799,15 @@
       <div class="flex items-center justify-between text-zinc-300">
         <span class="flex items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> WhatsApp Link:</span>
         <span class="text-emerald-400 font-bold shrink-0">+91 82838 48559</span>
+      </div>
+    </div>
+
+    <!-- Safeguard B: Prominent Customer Alert on Email Delay (Hidden by default, shown on failure) -->
+    <div id="success-email-fallback-alert" class="hidden p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/50 text-amber-200 text-xs text-left mb-4 flex items-start gap-3">
+      <svg class="text-amber-400 shrink-0 mt-0.5" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div>
+        <span class="font-black uppercase tracking-wider text-amber-400 block mb-1">Notice: Notification Queue Delayed</span>
+        <p class="leading-relaxed text-zinc-300">Your order has been safely saved in our central database. However, the store email dispatch queue experienced a brief delay. <strong>Please tap the green WhatsApp button below</strong> to ensure priority dispatch by our sales team.</p>
       </div>
     </div>
 

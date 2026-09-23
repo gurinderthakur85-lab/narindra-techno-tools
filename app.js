@@ -1137,6 +1137,7 @@ function handleCheckoutSubmit(e) {
   const name = document.getElementById("checkout-name")?.value.trim();
   const phone = document.getElementById("checkout-phone")?.value.trim();
   const altPhone = document.getElementById("checkout-alt-phone")?.value.trim() || "N/A";
+  const email = document.getElementById("checkout-email")?.value.trim() || "";
   const address = document.getElementById("checkout-address")?.value.trim();
   const city = document.getElementById("checkout-city")?.value.trim();
   const stateVal = document.getElementById("checkout-state")?.value.trim();
@@ -1157,13 +1158,18 @@ function handleCheckoutSubmit(e) {
   document.getElementById("success-customer-address").textContent = `${address}, ${city}, ${stateVal} - ${pincode}`;
   document.getElementById("success-total-amount").textContent = `₹${grandTotal.toLocaleString('en-IN')}`;
 
+  // Reset any previous fallback alert in modal
+  const fallbackAlertEl = document.getElementById("success-email-fallback-alert");
+  if (fallbackAlertEl) fallbackAlertEl.classList.add("hidden");
+  const waBtn = document.getElementById("btn-success-whatsapp");
+  if (waBtn) waBtn.classList.remove("animate-pulse", "ring-2", "ring-emerald-500/80");
+
   // Build WhatsApp pre-filled text
   const itemsText = state.checkoutItems.map(i => `• ${i.quantity}x ${i.name} (₹${(i.price * i.quantity).toLocaleString('en-IN')})`).join('\n');
   const fullAddressStr = `${address}, ${city}, ${stateVal} - ${pincode}`;
   
   const waMessage = `*NEW ORDER PLACED!* 🛍️\n\n*Order ID:* ${orderId}\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*Alt Phone:* ${altPhone}\n*Delivery Address:* ${fullAddressStr}\n*Payment Method:* Cash on Delivery (COD)\n\n*ORDERED ITEMS:*\n${itemsText}\n\n*Total Amount Payable:* ₹${grandTotal.toLocaleString('en-IN')} (Incl. ₹50 Flat Delivery Charge)\n\nPlease dispatch this consignment via Cash on Delivery.`;
   
-  const waBtn = document.getElementById("btn-success-whatsapp");
   if (waBtn) {
     waBtn.href = `https://wa.me/918283848559?text=${encodeURIComponent(waMessage)}`;
   }
@@ -1176,6 +1182,7 @@ function handleCheckoutSubmit(e) {
       name: name || "Valued Customer",
       phone: phone || "N/A",
       altPhone: altPhone || "",
+      email: email || "",
       address: fullAddressStr || "N/A",
       city: city || "",
       state: stateVal || "",
@@ -1190,10 +1197,11 @@ function handleCheckoutSubmit(e) {
     subtotal: subtotal,
     deliveryCharge: 50,
     total: grandTotal,
-    status: "PROCESSING"
+    status: "PROCESSING",
+    emailStatus: "PENDING"
   };
 
-  // 1. Immediately save to centralized Supabase backend and local cache
+  // Safeguard A: 1. Immediately save to centralized Supabase backend and local cache BEFORE email dispatch
   try {
     saveNewOrder(orderRecord);
   } catch (err) {
@@ -1206,6 +1214,7 @@ function handleCheckoutSubmit(e) {
     customerName: name,
     phone: phone,
     altPhone: altPhone,
+    email: email,
     address: fullAddressStr,
     itemsText: itemsText,
     items: state.checkoutItems,
@@ -1236,23 +1245,64 @@ function closeOrderSuccessModal() {
   document.getElementById("order-success-modal")?.classList.remove("active");
 }
 
-// --- DUAL-CHANNEL REAL EMAIL DISPATCH ENGINE ---
+// --- SAFEGUARD HELPER: RECORD EMAIL DISPATCH OUTCOME ACROSS CLOUD & LOCAL DB ---
+function markOrderEmailDelivery(orderId, isDelivered, errorMsg = "") {
+  try {
+    const orders = loadAdminOrders();
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      order.emailStatus = isDelivered ? "DELIVERED" : "FAILED_DELIVERY";
+      if (!isDelivered) {
+        order.emailError = errorMsg || "Dispatch Failed";
+        order.status = "PROCESSING (Email Issue)";
+      }
+      saveAdminOrders(orders);
+      renderAdminDashboardStats();
+      renderAdminOrders();
+    }
+
+    // Safeguard A: Cloud state sync if email delivery failed
+    if (!isDelivered && isSupabaseConfigured() && orderId) {
+      supabaseFetch(`orders?id=eq.${encodeURIComponent(orderId)}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          status: "PROCESSING (Email Issue)",
+          updated_at: new Date().toISOString()
+        })
+      }).catch(e => console.warn("[Supabase Orders] Could not flag email failure in cloud:", e));
+    }
+  } catch (e) {
+    console.warn("[Narindra Orders] Error updating email status:", e);
+  }
+}
+
+// --- DUAL-CHANNEL REAL EMAIL DISPATCH ENGINE WITH MULTI-LAYER SAFEGUARDS ---
 async function dispatchOrderEmail(orderData) {
   const emailStatusEl = document.getElementById("success-email-status");
+  const fallbackAlertEl = document.getElementById("success-email-fallback-alert");
+  const waBtn = document.getElementById("btn-success-whatsapp");
+
   if (emailStatusEl) {
     emailStatusEl.textContent = "Dispatching...";
+    emailStatusEl.className = "text-amber-400 font-bold truncate max-w-[140px] sm:max-w-[180px]";
+  }
+  if (fallbackAlertEl) {
+    fallbackAlertEl.classList.add("hidden");
   }
 
   const payload = {
     _subject: `⚡ NEW ORDER PLACED! - Narindra Express (#${orderData.id || 'ORDER'})`,
     _template: "table",
     _captcha: "false",
-    _url: "https://narindraexpress.in",
-    Store_Domain: "narindraexpress.in",
+    _url: "https://www.narindraexpress.in",
+    Store_Domain: "www.narindraexpress.in",
+    Live_Store_URL: "https://www.narindraexpress.in",
+    Admin_Dashboard: "https://www.narindraexpress.in/admin",
     Order_ID: orderData.id || `NTT-${Date.now().toString().slice(-6)}`,
     Customer_Name: orderData.customerName || "Customer",
     Customer_Phone: orderData.phone || "N/A",
     Alt_Phone: orderData.altPhone || "N/A",
+    Customer_Email: orderData.email || "Not Provided",
     Delivery_Address: orderData.address || "N/A",
     Payment_Method: "Cash on Delivery (COD)",
     Ordered_Items: orderData.itemsText || "N/A",
@@ -1261,6 +1311,10 @@ async function dispatchOrderEmail(orderData) {
     Total_Amount_Payable: `₹${(orderData.grandTotal || 0).toLocaleString('en-IN')}`,
     Order_Timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
   };
+
+  if (orderData.email && orderData.email.includes("@")) {
+    payload._replyto = orderData.email;
+  }
 
   try {
     const res = await fetch("https://formsubmit.co/ajax/Narindraexpress1@gmail.com", {
@@ -1275,16 +1329,53 @@ async function dispatchOrderEmail(orderData) {
     const result = await res.json().catch(() => ({}));
     console.log("[Narindra Dual-Channel] Order email dispatch result:", result);
 
-    if (emailStatusEl) {
-      emailStatusEl.textContent = "Dispatched (Narindraexpress1@gmail.com)";
-      emailStatusEl.className = "text-emerald-400 font-bold truncate max-w-[200px]";
+    const isSuccess = res.ok && (result.success === true || result.success === "true");
+
+    if (isSuccess) {
+      if (emailStatusEl) {
+        emailStatusEl.textContent = "Delivered to Narindraexpress1@gmail.com";
+        emailStatusEl.className = "text-emerald-400 font-bold truncate max-w-[140px] sm:max-w-[180px]";
+      }
+      if (fallbackAlertEl) fallbackAlertEl.classList.add("hidden");
+      markOrderEmailDelivery(orderData.id, true);
+      return { success: true, result };
+    } else {
+      const errMsg = result.message || "Email dispatch failed";
+      console.error("[Narindra Dual-Channel] Email dispatch rejected:", errMsg, result);
+
+      // Safeguard B: Visible Modal Alert & WhatsApp Prompt
+      if (emailStatusEl) {
+        emailStatusEl.textContent = "Delivery Pending / Check WhatsApp";
+        emailStatusEl.className = "text-amber-400 font-bold truncate max-w-[140px] sm:max-w-[180px]";
+      }
+      if (fallbackAlertEl) {
+        fallbackAlertEl.classList.remove("hidden");
+      }
+      if (waBtn) {
+        waBtn.classList.add("animate-pulse", "ring-2", "ring-emerald-500/80");
+      }
+
+      // Safeguard C: Record failure in DB
+      markOrderEmailDelivery(orderData.id, false, errMsg);
+      return { success: false, error: errMsg, result };
     }
-    return { success: true, result };
   } catch (err) {
-    console.warn("[Narindra Dual-Channel] Email dispatch warning:", err);
+    console.warn("[Narindra Dual-Channel] Email dispatch network warning:", err);
+
+    // Safeguard B: Visible Modal Alert on Network Error
     if (emailStatusEl) {
-      emailStatusEl.textContent = "Queued to Narindraexpress1@gmail.com";
+      emailStatusEl.textContent = "Queued to Cloud / Check WhatsApp";
+      emailStatusEl.className = "text-amber-400 font-bold truncate max-w-[140px] sm:max-w-[180px]";
     }
+    if (fallbackAlertEl) {
+      fallbackAlertEl.classList.remove("hidden");
+    }
+    if (waBtn) {
+      waBtn.classList.add("animate-pulse", "ring-2", "ring-emerald-500/80");
+    }
+
+    // Safeguard C: Record failure in DB
+    markOrderEmailDelivery(orderData.id, false, err.message || "Network Error");
     return { success: false, error: err };
   }
 }
@@ -1754,7 +1845,7 @@ function renderAdminDashboardStats() {
   }).join("");
 }
 
-// --- ADMIN ORDERS VIEW (4-Column Layout, Clean Empty State) ---
+// --- ADMIN ORDERS VIEW (4-Column Layout, Clean Empty State & Failure Safeguard) ---
 function renderAdminOrders() {
   const container = document.getElementById("admin-orders-list");
   if (!container) return;
@@ -1769,15 +1860,44 @@ function renderAdminOrders() {
     return;
   }
 
-  container.innerHTML = orders.map(order => {
+  // Safeguard C: Check for any orders where email delivery failed
+  const failedEmailOrders = orders.filter(o => 
+    o.emailStatus === "FAILED_DELIVERY" || 
+    (typeof o.status === "string" && o.status.toLowerCase().includes("email"))
+  );
+
+  const failureBannerHtml = failedEmailOrders.length > 0 ? `
+    <div id="admin-email-failure-banner" class="mb-5 p-4 rounded-2xl bg-rose-500/15 border-2 border-rose-500/60 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/40">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <span class="text-xs font-black uppercase tracking-wider text-rose-400 font-mono-custom block">⚠️ Attention: Email Notification Failure</span>
+          <p class="text-xs text-zinc-200 mt-0.5"><span class="font-bold text-white">${failedEmailOrders.length} order(s)</span> experienced an automated email notification failure. Order details are safely preserved in the database below.</p>
+        </div>
+      </div>
+      <span class="px-3 py-1.5 rounded-lg bg-rose-950/80 border border-rose-500/50 text-rose-300 text-[10px] font-black uppercase font-mono-custom shrink-0">Email Delivery Issue</span>
+    </div>
+  ` : "";
+
+  container.innerHTML = failureBannerHtml + orders.map(order => {
     let pillClass = "pill-orange";
     if (order.status === "DELIVERED") pillClass = "pill-green";
     if (order.status === "CANCELLED") pillClass = "pill-neutral";
 
+    const isEmailFailed = order.emailStatus === "FAILED_DELIVERY" || (typeof order.status === "string" && order.status.toLowerCase().includes("email"));
+    const emailBadgeHtml = isEmailFailed ? `
+      <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-rose-950/80 border border-rose-500/50 text-rose-400 text-[10px] font-bold font-mono-custom uppercase">
+        <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span>
+        <span>Email Undelivered</span>
+      </div>
+    ` : "";
+
     const itemsSummary = (order.items || []).map(i => `${i.quantity}x ${i.name} (₹${(i.price * i.quantity).toLocaleString('en-IN')})`).join("<br/>") || "1x Industrial Equipment Order";
 
     return `
-      <div class="admin-card rounded-[24px] sm:rounded-[28px] md:rounded-[36px] p-4 sm:p-6 transition-all hover:border-[#333] overflow-hidden">
+      <div class="admin-card rounded-[24px] sm:rounded-[28px] md:rounded-[36px] p-4 sm:p-6 transition-all hover:border-[#333] overflow-hidden mb-4">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6 divide-y md:divide-y-0 md:divide-x divide-zinc-800/80">
           
           <!-- Col 1: Customer -->
@@ -1793,6 +1913,7 @@ function renderAdminOrders() {
                 <span class="break-all">${order.customer?.phone || "N/A"}</span>
               </div>
               <span class="text-[10px] font-mono-custom text-zinc-400 block mt-1 whitespace-nowrap">${order.id}</span>
+              ${emailBadgeHtml}
             </div>
           </div>
 
