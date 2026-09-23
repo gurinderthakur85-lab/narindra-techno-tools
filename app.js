@@ -1168,7 +1168,39 @@ function handleCheckoutSubmit(e) {
     waBtn.href = `https://wa.me/918283848559?text=${encodeURIComponent(waMessage)}`;
   }
 
-  // Dual-channel notification: Real email dispatch to Narindraexpress1@gmail.com simultaneously
+  // Assemble order data for both local cache and Supabase cloud database
+  const orderRecord = {
+    id: orderId,
+    date: new Date().toISOString(),
+    customer: {
+      name: name || "Valued Customer",
+      phone: phone || "N/A",
+      altPhone: altPhone || "",
+      address: fullAddressStr || "N/A",
+      city: city || "",
+      state: stateVal || "",
+      pincode: pincode || ""
+    },
+    items: (state.checkoutItems || []).map(i => ({
+      name: i.name,
+      quantity: i.quantity,
+      price: i.price
+    })),
+    itemsText: itemsText,
+    subtotal: subtotal,
+    deliveryCharge: 50,
+    total: grandTotal,
+    status: "PROCESSING"
+  };
+
+  // 1. Immediately save to centralized Supabase backend and local cache
+  try {
+    saveNewOrder(orderRecord);
+  } catch (err) {
+    console.warn("[Narindra Orders] Order persistence error:", err);
+  }
+
+  // 2. Dual-channel notification: Real email dispatch to Narindraexpress1@gmail.com simultaneously
   dispatchOrderEmail({
     id: orderId,
     customerName: name,
@@ -1181,14 +1213,14 @@ function handleCheckoutSubmit(e) {
     grandTotal: grandTotal
   });
 
-  // Clear cart & update UI
+  // 3. Clear cart & update UI
   state.cart = [];
   saveCart();
   updateCartBadge();
   closeCartDrawer();
   closeCheckoutModal();
 
-  // Show Success Modal
+  // 4. Show Success Modal
   const successBackdrop = document.getElementById("order-success-backdrop");
   const successModal = document.getElementById("order-success-modal");
   if (successBackdrop && successModal) {
@@ -1197,35 +1229,6 @@ function handleCheckoutSubmit(e) {
   }
 
   showToast(`Order ${orderId} Placed Successfully!`);
-
-  // Save order to centralized backend (Supabase + local fallback)
-  try {
-    saveNewOrder({
-      id: orderId,
-      date: new Date().toISOString(),
-      customer: {
-        name: name || "Valued Customer",
-        phone: phone || "N/A",
-        altPhone: altPhone || "",
-        address: fullAddressStr || "N/A",
-        city: city || "",
-        state: stateVal || "",
-        pincode: pincode || ""
-      },
-      items: (state.checkoutItems || []).map(i => ({
-        name: i.name,
-        quantity: i.quantity,
-        price: i.price
-      })),
-      itemsText: itemsSummaryText,
-      subtotal: subtotal,
-      deliveryCharge: 50,
-      total: grandTotal,
-      status: "PROCESSING"
-    });
-  } catch (err) {
-    console.warn("Order persistence notification:", err);
-  }
 }
 
 function closeOrderSuccessModal() {
