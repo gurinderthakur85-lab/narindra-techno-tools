@@ -666,45 +666,45 @@
     </div>
 
     <form id="checkout-form" class="space-y-4">
-      <h4 class="text-xs font-black uppercase tracking-wider text-zinc-300 font-mono-custom flex items-center gap-2">
+      <h4 class="text-xs font-black uppercase tracking-wider text-white font-mono-custom flex items-center gap-2">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span>Customer & Shipping Information</span>
       </h4>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="block text-[10px] font-bold uppercase text-zinc-400 font-mono-custom mb-1">Full Name *</label>
+          <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">Full Name *</label>
           <input type="text" id="checkout-name" placeholder="e.g. Rajinder Singh" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500]" />
         </div>
         <div>
-          <label class="block text-[10px] font-bold uppercase text-zinc-400 font-mono-custom mb-1">Mobile Number *</label>
+          <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">Mobile Number *</label>
           <input type="tel" id="checkout-phone" placeholder="e.g. 98765 43210" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500] font-mono-custom" />
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="block text-[10px] font-bold uppercase text-zinc-400 font-mono-custom mb-1">Alternate Phone / WhatsApp (Optional)</label>
+          <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">Alternate Phone / WhatsApp (Optional)</label>
           <input type="tel" id="checkout-alt-phone" placeholder="e.g. 98123 45678" class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500] font-mono-custom" />
         </div>
         <div>
-          <label class="block text-[10px] font-bold uppercase text-zinc-400 font-mono-custom mb-1">Pincode / Zip Code *</label>
+          <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">Pincode / Zip Code *</label>
           <input type="text" id="checkout-pincode" placeholder="e.g. 151204" maxlength="6" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500] font-mono-custom" />
         </div>
       </div>
 
       <div>
-        <label class="block text-[10px] font-bold uppercase text-zinc-400 font-mono-custom mb-1">Full Delivery Address (House/Shop No, Street, Area) *</label>
+        <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">Full Delivery Address (House/Shop No, Street, Area) *</label>
         <textarea id="checkout-address" rows="2" placeholder="e.g. Shop No. 14, Main Hardware Market, Near Bus Stand" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500]"></textarea>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="block text-[10px] font-bold uppercase text-zinc-400 font-mono-custom mb-1">City / Town *</label>
+          <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">City / Town *</label>
           <input type="text" id="checkout-city" placeholder="e.g. Kotkapura" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#ff5500]" />
         </div>
         <div>
-          <label class="block text-[10px] font-bold uppercase text-zinc-400 font-mono-custom mb-1">State *</label>
+          <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-1">State *</label>
           <select id="checkout-state" required class="w-full bg-[#161616] border border-[#2a2a2a] rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#ff5500]">
             <option value="Punjab" selected>Punjab</option>
             <option value="Haryana">Haryana</option>
@@ -720,7 +720,7 @@
 
       <!-- Payment Method Selection (Cash on Delivery Only - Fix 3) -->
       <div>
-        <label class="block text-[10px] font-bold uppercase text-zinc-400 font-mono-custom mb-2">Payment Method</label>
+        <label class="block text-[10px] font-bold uppercase text-white font-mono-custom mb-2">Payment Method</label>
         <div class="p-3.5 bg-[#161616] border border-[#ff5500]/50 rounded-xl flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-lg bg-[#ff5500]/15 text-[#ff5500] flex items-center justify-center border border-[#ff5500]/30 shrink-0">
@@ -731,7 +731,7 @@
                 <span class="text-xs font-black uppercase text-white tracking-wide">Cash on Delivery (COD)</span>
                 <span class="px-2 py-0.5 rounded bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 text-[9px] font-bold font-mono-custom uppercase">Only Option Available</span>
               </div>
-              <p class="text-[11px] text-zinc-400 mt-0.5 font-medium">Pay securely in cash or via UPI upon doorstep delivery.</p>
+              <p class="text-[11px] text-zinc-300 mt-0.5 font-medium">Pay securely in cash or via UPI upon doorstep delivery.</p>
             </div>
           </div>
           <input type="hidden" name="payment-method" value="Cash on Delivery (COD)" />
@@ -754,31 +754,31 @@
 
     <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 font-mono-custom block mb-1">Order Confirmed</span>
     <h3 class="text-2xl font-black uppercase text-white font-display mb-1">Order Placed Successfully!</h3>
-    <p class="text-xs text-zinc-400 mb-4">Your order has been logged into the Narindra Express dispatch queue.</p>
+    <p class="text-xs text-zinc-300 mb-4">Your order has been logged into the Narindra Express dispatch queue.</p>
 
     <div class="bg-[#161616] p-4 rounded-xl border border-[#2a2a2a] text-left space-y-2 mb-6 text-xs">
       <div class="flex justify-between border-b border-[#2a2a2a] pb-2 font-mono-custom">
-        <span class="text-zinc-400">Order ID:</span>
+        <span class="text-white font-bold">Order ID:</span>
         <span id="success-order-id" class="font-black text-[#ff5500]">NTT-00000</span>
       </div>
       <div class="flex justify-between font-mono-custom">
-        <span class="text-zinc-400">Customer:</span>
+        <span class="text-white font-bold">Customer:</span>
         <span id="success-customer-name" class="font-bold text-white">Name</span>
       </div>
       <div class="flex justify-between font-mono-custom">
-        <span class="text-zinc-400">Phone:</span>
+        <span class="text-white font-bold">Phone:</span>
         <span id="success-customer-phone" class="font-bold text-white">Phone</span>
       </div>
       <div class="flex justify-between font-mono-custom">
-        <span class="text-zinc-400">Payment:</span>
+        <span class="text-white font-bold">Payment:</span>
         <span class="font-bold text-emerald-400">Cash on Delivery (COD)</span>
       </div>
       <div class="flex justify-between font-mono-custom">
-        <span class="text-zinc-400">Delivery Address:</span>
-        <span id="success-customer-address" class="font-bold text-zinc-300 text-right max-w-[240px] truncate">Address</span>
+        <span class="text-white font-bold">Delivery Address:</span>
+        <span id="success-customer-address" class="font-bold text-white text-right max-w-[240px] truncate">Address</span>
       </div>
       <div class="flex justify-between border-t border-[#2a2a2a] pt-2 font-mono-custom">
-        <span class="text-zinc-400">Total Amount:</span>
+        <span class="text-white font-bold">Total Amount:</span>
         <span id="success-total-amount" class="font-black text-emerald-400 text-sm">₹0</span>
       </div>
     </div>

@@ -346,6 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderAdminCategoriesTree();
   renderAdminDashboardStats();
   renderAdminOrders();
+  syncAdminOrdersFromCloud();
   initAddProductForm();
   updateCartBadge();
 
@@ -1197,26 +1198,33 @@ function handleCheckoutSubmit(e) {
 
   showToast(`Order ${orderId} Placed Successfully!`);
 
-  // Safe local audit record (isolated try/catch, zero impact on checkout)
+  // Save order to centralized backend (Supabase + local fallback)
   try {
-    recordOrderLocally({
+    saveNewOrder({
       id: orderId,
       date: new Date().toISOString(),
       customer: {
         name: name || "Valued Customer",
         phone: phone || "N/A",
-        address: fullAddressStr || "N/A"
+        altPhone: altPhone || "",
+        address: fullAddressStr || "N/A",
+        city: city || "",
+        state: stateVal || "",
+        pincode: pincode || ""
       },
       items: (state.checkoutItems || []).map(i => ({
         name: i.name,
         quantity: i.quantity,
         price: i.price
       })),
+      itemsText: itemsSummaryText,
+      subtotal: subtotal,
+      deliveryCharge: 50,
       total: grandTotal,
-      status: "IN DISPATCH"
+      status: "PROCESSING"
     });
   } catch (err) {
-    console.warn("Local order audit notification:", err);
+    console.warn("Order persistence notification:", err);
   }
 }
 
@@ -1397,6 +1405,39 @@ function saveAdminCategories() {
   }
 }
 
+// --- SUPABASE CENTRALIZED CLOUD ORDERS BACKEND ---
+const SUPABASE_CONFIG = {
+  url: window.__SUPABASE_URL__ || "https://YOUR_SUPABASE_PROJECT_ID.supabase.co",
+  anonKey: window.__SUPABASE_ANON_KEY__ || "YOUR_SUPABASE_ANON_KEY"
+};
+
+function isSupabaseConfigured() {
+  return SUPABASE_CONFIG.url && 
+         !SUPABASE_CONFIG.url.includes("YOUR_SUPABASE_PROJECT_ID") && 
+         SUPABASE_CONFIG.anonKey && 
+         !SUPABASE_CONFIG.anonKey.includes("YOUR_SUPABASE_ANON_KEY");
+}
+
+async function supabaseFetch(path, options = {}) {
+  if (!isSupabaseConfigured()) {
+    return null;
+  }
+  const headers = {
+    "apikey": SUPABASE_CONFIG.anonKey,
+    "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`,
+    "Content-Type": "application/json",
+    "Prefer": options.prefer || "return=representation",
+    ...(options.headers || {})
+  };
+  const url = `${SUPABASE_CONFIG.url}/rest/v1/${path}`;
+  const res = await fetch(url, { ...options, headers });
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Supabase API error (${res.status}): ${errorText}`);
+  }
+  return await res.json().catch(() => null);
+}
+
 function loadAdminOrders() {
   try {
     const raw = localStorage.getItem("ntt_orders");
@@ -1417,7 +1458,12 @@ function saveAdminOrders(orders) {
 function recordOrderLocally(orderData) {
   try {
     const orders = loadAdminOrders();
-    orders.unshift(orderData);
+    const existingIndex = orders.findIndex(o => o.id === orderData.id);
+    if (existingIndex >= 0) {
+      orders[existingIndex] = orderData;
+    } else {
+      orders.unshift(orderData);
+    }
     saveAdminOrders(orders);
     renderAdminDashboardStats();
     renderAdminOrders();
@@ -1426,23 +1472,132 @@ function recordOrderLocally(orderData) {
   }
 }
 
-function updateOrderStatus(orderId, newStatus) {
-  const orders = loadAdminOrders();
-  const order = orders.find(o => o.id === orderId);
-  if (!order) return;
-  order.status = newStatus;
-  saveAdminOrders(orders);
-  renderAdminOrders();
-  renderAdminDashboardStats();
-  showToast(`Order ${orderId} status set to ${newStatus}`);
+// Master function: saves new order to both local cache and Supabase cloud database
+async function saveNewOrder(orderData) {
+  // 1. Immediately cache locally
+  recordOrderLocally(orderData);
+
+  // 2. Persist to Supabase cloud database
+  if (!isSupabaseConfigured()) {
+    console.info("[Supabase Orders] Pending credentials to sync to cloud database.");
+    return;
+  }
+
+  try {
+    const row = {
+      id: orderData.id,
+      customer_name: orderData.customer?.name || "Customer",
+      phone: orderData.customer?.phone || "N/A",
+      alt_phone: orderData.customer?.altPhone || null,
+      address: orderData.customer?.address || "N/A",
+      city: orderData.customer?.city || null,
+      state: orderData.customer?.state || null,
+      pincode: orderData.customer?.pincode || null,
+      payment_method: "Cash on Delivery (COD)",
+      items: orderData.items || [],
+      items_text: orderData.itemsText || (orderData.items || []).map(i => `${i.quantity}x ${i.name}`).join(", "),
+      subtotal: Number(orderData.subtotal || 0),
+      delivery_charge: Number(orderData.deliveryCharge || 50),
+      total: Number(orderData.total || 0),
+      status: orderData.status || "PROCESSING",
+      created_at: orderData.date || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const res = await supabaseFetch("orders", {
+      method: "POST",
+      body: JSON.stringify(row)
+    });
+    console.log("[Supabase Orders] Successfully synced new order to cloud:", res);
+  } catch (err) {
+    console.warn("[Supabase Orders] Cloud sync error:", err);
+  }
 }
 
-function clearAdminOrders(forceNoConfirm) {
+// Sync all orders from Supabase cloud database into the admin dashboard
+async function syncAdminOrdersFromCloud() {
+  if (!isSupabaseConfigured()) {
+    return loadAdminOrders();
+  }
+
+  try {
+    const rows = await supabaseFetch("orders?select=*&order=created_at.desc");
+    if (Array.isArray(rows)) {
+      const orders = rows.map(row => ({
+        id: row.id,
+        date: row.created_at,
+        customer: {
+          name: row.customer_name,
+          phone: row.phone,
+          altPhone: row.alt_phone,
+          address: row.address,
+          city: row.city,
+          state: row.state,
+          pincode: row.pincode
+        },
+        items: Array.isArray(row.items) ? row.items : [],
+        itemsText: row.items_text,
+        subtotal: Number(row.subtotal || 0),
+        deliveryCharge: Number(row.delivery_charge || 50),
+        total: Number(row.total || 0),
+        status: row.status || "PROCESSING"
+      }));
+
+      saveAdminOrders(orders);
+      renderAdminDashboardStats();
+      renderAdminOrders();
+      return orders;
+    }
+  } catch (err) {
+    console.warn("[Supabase Orders] Could not sync orders from cloud:", err);
+  }
+  return loadAdminOrders();
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+  // Update locally first for instant UI response
+  const orders = loadAdminOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (order) {
+    order.status = newStatus;
+    saveAdminOrders(orders);
+    renderAdminOrders();
+    renderAdminDashboardStats();
+  }
+  showToast(`Order ${orderId} status set to ${newStatus}`);
+
+  // Sync to Supabase cloud database
+  if (!isSupabaseConfigured()) return;
+  try {
+    await supabaseFetch(`orders?id=eq.${encodeURIComponent(orderId)}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      })
+    });
+    console.log(`[Supabase Orders] Order ${orderId} status synced to cloud: ${newStatus}`);
+  } catch (err) {
+    console.warn("[Supabase Orders] Failed to update status in cloud:", err);
+  }
+}
+
+async function clearAdminOrders(forceNoConfirm) {
   if (forceNoConfirm || confirm("Clear all orders from the admin dashboard?")) {
     saveAdminOrders([]);
     renderAdminDashboardStats();
     renderAdminOrders();
     showToast("All orders wiped successfully.");
+
+    if (!isSupabaseConfigured()) return;
+    try {
+      await supabaseFetch("orders?id=neq.placeholder", {
+        method: "DELETE"
+      });
+      console.log("[Supabase Orders] Orders cleared from cloud database.");
+    } catch (err) {
+      console.warn("[Supabase Orders] Failed to clear cloud orders:", err);
+    }
   }
 }
 
@@ -1481,10 +1636,12 @@ function switchAdminSection(section) {
   // Render current active view
   if (section === "dashboard") {
     renderAdminDashboardStats();
+    syncAdminOrdersFromCloud();
   } else if (section === "products") {
     switchProductTab(currentProductTab);
   } else if (section === "orders") {
     renderAdminOrders();
+    syncAdminOrdersFromCloud();
   }
 
   // Close mobile drawer if open
@@ -1624,34 +1781,34 @@ function renderAdminOrders() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <div class="min-w-0 flex-1">
-              <span class="text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold block mb-1">CLIENT_IDENTITY</span>
+              <span class="text-[9px] font-mono-custom uppercase tracking-wider text-zinc-300 font-bold block mb-1">CLIENT_IDENTITY</span>
               <h4 class="font-bold text-white uppercase text-sm leading-snug break-words font-sans">${order.customer?.name || "Customer"}</h4>
-              <div class="flex items-center gap-1.5 mt-1 text-xs text-zinc-400 font-mono-custom">
+              <div class="flex items-center gap-1.5 mt-1 text-xs text-white font-semibold font-mono-custom">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                 <span>${order.customer?.phone || "N/A"}</span>
               </div>
-              <span class="text-[10px] font-mono-custom text-zinc-600 block mt-1">${order.id}</span>
+              <span class="text-[10px] font-mono-custom text-zinc-400 block mt-1">${order.id}</span>
             </div>
           </div>
 
           <!-- Col 2: Shipping Coordinates -->
           <div class="pt-4 md:pt-0 md:px-5">
-            <div class="flex items-center gap-1.5 text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold mb-2">
+            <div class="flex items-center gap-1.5 text-[9px] font-mono-custom uppercase tracking-wider text-zinc-300 font-bold mb-2">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               <span>SHIPPING_COORDINATES</span>
             </div>
-            <p class="text-xs text-zinc-300 font-mono-custom leading-relaxed uppercase break-words">
+            <p class="text-xs text-white font-mono-custom leading-relaxed uppercase break-words">
               ${order.customer?.address || "Address details on record."}
             </p>
           </div>
 
           <!-- Col 3: Manifest Details -->
           <div class="pt-4 md:pt-0 md:px-5">
-            <div class="flex items-center gap-1.5 text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold mb-2">
+            <div class="flex items-center gap-1.5 text-[9px] font-mono-custom uppercase tracking-wider text-zinc-300 font-bold mb-2">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
               <span>MANIFEST_DETAILS</span>
             </div>
-            <div class="text-xs text-zinc-300 font-mono-custom leading-relaxed line-clamp-3">
+            <div class="text-xs text-white font-mono-custom leading-relaxed line-clamp-3">
               ${itemsSummary}
             </div>
             <div class="mt-2 text-sm font-black text-white font-mono-custom">
@@ -2966,8 +3123,26 @@ window.saveAdminCategories = saveAdminCategories;
 window.loadAdminOrders = loadAdminOrders;
 window.saveAdminOrders = saveAdminOrders;
 window.recordOrderLocally = recordOrderLocally;
+window.saveNewOrder = saveNewOrder;
+window.syncAdminOrdersFromCloud = syncAdminOrdersFromCloud;
+window.isSupabaseConfigured = isSupabaseConfigured;
+window.SUPABASE_CONFIG = SUPABASE_CONFIG;
+window.setSupabaseCredentials = function(url, anonKey) {
+  if (url) SUPABASE_CONFIG.url = url;
+  if (anonKey) SUPABASE_CONFIG.anonKey = anonKey;
+  return syncAdminOrdersFromCloud();
+};
 window.updateOrderStatus = updateOrderStatus;
 window.clearAdminOrders = clearAdminOrders;
 window.dispatchOrderEmail = dispatchOrderEmail;
 window.populateAdminBrandDropdown = populateAdminBrandDropdown;
 window.onBrandSelectChange = onBrandSelectChange;
+
+// Auto-sync admin orders from Supabase cloud database every 20 seconds while on admin view
+if (typeof window !== "undefined") {
+  setInterval(() => {
+    if (document.getElementById("admin-orders-list") && isSupabaseConfigured()) {
+      syncAdminOrdersFromCloud();
+    }
+  }, 20000);
+}
