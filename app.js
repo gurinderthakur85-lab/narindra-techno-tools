@@ -1407,8 +1407,8 @@ function saveAdminCategories() {
 
 // --- SUPABASE CENTRALIZED CLOUD ORDERS BACKEND ---
 const SUPABASE_CONFIG = {
-  url: window.__SUPABASE_URL__ || "https://YOUR_SUPABASE_PROJECT_ID.supabase.co",
-  anonKey: window.__SUPABASE_ANON_KEY__ || "YOUR_SUPABASE_ANON_KEY"
+  url: window.__SUPABASE_URL__ || "https://enmazhpxzwkhyvduihds.supabase.co",
+  anonKey: window.__SUPABASE_ANON_KEY__ || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWF6aHB4endraHl2ZHVpaGRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzczMjYsImV4cCI6MjEwNTc1MzMyNn0.NoTbJXQwbjLXJFuDgxkrpV7hBRML_FCRqQjgj_7i9qc"
 };
 
 function isSupabaseConfigured() {
