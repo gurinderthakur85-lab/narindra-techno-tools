@@ -1097,13 +1097,13 @@ function renderCheckoutSummary() {
             <span class="text-[10px] font-mono-custom text-[#ff5500]">₹${item.price.toLocaleString('en-IN')} / unit</span>
           </div>
         </div>
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
           <div class="flex items-center gap-1.5 bg-[#161616] border border-[#2a2a2a] rounded-lg px-2 py-0.5">
             <button type="button" onclick="changeCheckoutQty(${idx}, -1)" class="text-xs text-zinc-400 hover:text-white px-1 font-bold">-</button>
             <span class="text-xs font-bold font-mono-custom text-white px-1">${item.quantity}</span>
             <button type="button" onclick="changeCheckoutQty(${idx}, 1)" class="text-xs text-zinc-400 hover:text-white px-1 font-bold">+</button>
           </div>
-          <span class="text-xs font-black font-mono-custom text-white min-w-[64px] text-right">₹${itemTotal.toLocaleString('en-IN')}</span>
+          <span class="text-xs font-black font-mono-custom text-white min-w-[54px] sm:min-w-[64px] text-right">₹${itemTotal.toLocaleString('en-IN')}</span>
         </div>
       </div>
     `;
@@ -1727,25 +1727,27 @@ function renderAdminDashboardStats() {
     if (order.status === "DELIVERED") pillClass = "pill-green";
     if (order.status === "CANCELLED") pillClass = "pill-neutral";
 
+    const itemsSummary = (order.items || []).map(i => `${i.quantity}x ${i.name}`).join(", ") || "Machinery Order";
+
     return `
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 bg-[#161616] rounded-2xl border border-[#222]">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-mono-custom font-bold text-xs text-[#ff5500]">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:p-3.5 bg-[#161616] rounded-2xl border border-[#222] w-full min-w-0 overflow-hidden">
+        <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1 w-full">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-mono-custom font-bold text-[11px] sm:text-xs text-[#ff5500] shrink-0">
             ORD
           </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-white uppercase font-sans">${order.customer?.name || "Customer"}</span>
-              <span class="text-[10px] font-mono-custom text-zinc-500">${order.id}</span>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+              <span class="text-xs font-bold text-white uppercase font-sans truncate">${order.customer?.name || "Customer"}</span>
+              <span class="text-[10px] font-mono-custom text-zinc-400 shrink-0 whitespace-nowrap">${order.id}</span>
             </div>
-            <div class="text-[10px] font-mono-custom text-zinc-400 truncate max-w-xs sm:max-w-sm">
-              ${(order.items || []).map(i => `${i.quantity}x ${i.name}`).join(", ") || "Machinery Order"}
-            </div>
+            <p class="text-[10px] font-mono-custom text-zinc-300 truncate w-full mt-0.5" title="${itemsSummary.replace(/"/g, '&quot;')}">
+              ${itemsSummary}
+            </p>
           </div>
         </div>
-        <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+        <div class="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-zinc-800/80 shrink-0">
           <span class="font-mono-custom font-black text-sm text-white">₹${Number(order.total || 0).toLocaleString('en-IN')}</span>
-          <span class="${pillClass}">${order.status}</span>
+          <span class="${pillClass} shrink-0 text-center">${order.status}</span>
         </div>
       </div>
     `;
@@ -1760,7 +1762,7 @@ function renderAdminOrders() {
   const orders = loadAdminOrders();
   if (orders.length === 0) {
     container.innerHTML = `
-      <div class="admin-card rounded-[28px] p-12 text-center text-zinc-500 font-mono-custom text-xs">
+      <div class="admin-card rounded-[24px] sm:rounded-[28px] p-8 sm:p-12 text-center text-zinc-500 font-mono-custom text-xs">
         No orders yet. Customer orders placed in this browser will appear here.
       </div>
     `;
@@ -1775,29 +1777,29 @@ function renderAdminOrders() {
     const itemsSummary = (order.items || []).map(i => `${i.quantity}x ${i.name} (₹${(i.price * i.quantity).toLocaleString('en-IN')})`).join("<br/>") || "1x Industrial Equipment Order";
 
     return `
-      <div class="admin-card rounded-[28px] md:rounded-[36px] p-5 sm:p-6 transition-all hover:border-[#333]">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 divide-y md:divide-y-0 md:divide-x divide-zinc-800/80">
+      <div class="admin-card rounded-[24px] sm:rounded-[28px] md:rounded-[36px] p-4 sm:p-6 transition-all hover:border-[#333] overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6 divide-y md:divide-y-0 md:divide-x divide-zinc-800/80">
           
           <!-- Col 1: Customer -->
-          <div class="flex items-start gap-3.5 pr-2">
-            <div class="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-[#ff5500]">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <div class="flex items-start gap-3 sm:gap-3.5 md:pr-2 min-w-0">
+            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-[#ff5500]">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <div class="min-w-0 flex-1">
               <span class="text-[9px] font-mono-custom uppercase tracking-wider text-zinc-300 font-bold block mb-1">CLIENT_IDENTITY</span>
               <h4 class="font-bold text-white uppercase text-sm leading-snug break-words font-sans">${order.customer?.name || "Customer"}</h4>
               <div class="flex items-center gap-1.5 mt-1 text-xs text-white font-semibold font-mono-custom">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <span>${order.customer?.phone || "N/A"}</span>
+                <svg class="shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span class="break-all">${order.customer?.phone || "N/A"}</span>
               </div>
-              <span class="text-[10px] font-mono-custom text-zinc-400 block mt-1">${order.id}</span>
+              <span class="text-[10px] font-mono-custom text-zinc-400 block mt-1 whitespace-nowrap">${order.id}</span>
             </div>
           </div>
 
           <!-- Col 2: Shipping Coordinates -->
-          <div class="pt-4 md:pt-0 md:px-5">
+          <div class="pt-3.5 md:pt-0 md:px-5 min-w-0">
             <div class="flex items-center gap-1.5 text-[9px] font-mono-custom uppercase tracking-wider text-zinc-300 font-bold mb-2">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <svg class="shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               <span>SHIPPING_COORDINATES</span>
             </div>
             <p class="text-xs text-white font-mono-custom leading-relaxed uppercase break-words">
@@ -1806,12 +1808,12 @@ function renderAdminOrders() {
           </div>
 
           <!-- Col 3: Manifest Details -->
-          <div class="pt-4 md:pt-0 md:px-5">
+          <div class="pt-3.5 md:pt-0 md:px-5 min-w-0">
             <div class="flex items-center gap-1.5 text-[9px] font-mono-custom uppercase tracking-wider text-zinc-300 font-bold mb-2">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              <svg class="shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
               <span>MANIFEST_DETAILS</span>
             </div>
-            <div class="text-xs text-white font-mono-custom leading-relaxed line-clamp-3">
+            <div class="text-xs text-white font-mono-custom leading-relaxed line-clamp-3 break-words">
               ${itemsSummary}
             </div>
             <div class="mt-2 text-sm font-black text-white font-mono-custom">
@@ -1820,11 +1822,11 @@ function renderAdminOrders() {
           </div>
 
           <!-- Col 4: Fulfillment -->
-          <div class="pt-4 md:pt-0 md:pl-5 flex flex-col justify-between gap-3">
+          <div class="pt-3.5 md:pt-0 md:pl-5 flex flex-col justify-between gap-3 min-w-0">
             <div>
               <div class="flex items-center justify-between mb-1.5">
                 <span class="text-[9px] font-mono-custom uppercase tracking-wider text-zinc-500 font-bold">FULFILLMENT</span>
-                <span class="${pillClass} flex items-center gap-1">
+                <span class="${pillClass} flex items-center gap-1 shrink-0">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                   <span>${order.status}</span>
                 </span>
@@ -1902,24 +1904,24 @@ function renderAdminProducts() {
           </button>
 
           <!-- Thumbnail -->
-          <img src="${product.image}" alt="${product.name}" class="w-20 h-20 rounded-[12px] object-contain bg-white/5 p-1.5 border border-white/10 shrink-0" onerror="this.src='/logo.png'" />
+          <img src="${product.image}" alt="${product.name}" class="w-14 h-14 sm:w-20 sm:h-20 rounded-[12px] object-contain bg-white/5 p-1 sm:p-1.5 border border-white/10 shrink-0" onerror="this.src='/logo.png'" />
 
           <!-- Name & Chips -->
           <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-center gap-2 mb-1.5">
-              <span class="font-bold text-white uppercase text-sm leading-snug break-words font-sans">${product.name}</span>
-              <span class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono-custom font-bold text-zinc-300 shrink-0">TR_RATING ${product.rating || '5.0'}</span>
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1 sm:mb-1.5">
+              <span class="font-bold text-white uppercase text-xs sm:text-sm leading-snug break-words font-sans">${product.name}</span>
+              <span class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[9px] sm:text-[10px] font-mono-custom font-bold text-zinc-300 shrink-0">TR_RATING ${product.rating || '5.0'}</span>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono-custom text-zinc-400 font-bold uppercase">ID: ${String(product.id).toUpperCase()}</span>
-              <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono-custom text-[#ff5500] font-bold uppercase">CAT: ${product.categoryName || product.category}</span>
-              <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono-custom text-zinc-400 font-bold uppercase">${product.brand}</span>
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span class="px-1.5 sm:px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] sm:text-[10px] font-mono-custom text-zinc-400 font-bold uppercase">ID: ${String(product.id).toUpperCase()}</span>
+              <span class="px-1.5 sm:px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] sm:text-[10px] font-mono-custom text-[#ff5500] font-bold uppercase">CAT: ${product.categoryName || product.category}</span>
+              <span class="px-1.5 sm:px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] sm:text-[10px] font-mono-custom text-zinc-400 font-bold uppercase">${product.brand}</span>
             </div>
           </div>
         </div>
 
         <!-- Right group: Stock + Price + Actions -->
-        <div class="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-zinc-800/80 shrink-0">
+        <div class="flex items-center justify-between md:justify-end gap-3 sm:gap-6 w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-zinc-800/80 shrink-0">
           <!-- Stock block centered -->
           <div class="text-center shrink-0 cursor-pointer" onclick="toggleProductStock('${product.id}')" title="Click to toggle stock status">
             <div class="font-mono-custom text-base font-black ${product.inStock ? 'text-white' : 'text-red-400'}">

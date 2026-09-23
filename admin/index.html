@@ -182,72 +182,72 @@
   </div>
 
   <!-- ================= MAIN CONTENT AREA ================= -->
-  <main class="md:ml-[300px] min-h-screen p-4 sm:p-8 md:p-12 pb-24 bg-[#0a0a0a]">
-    <div class="max-w-6xl mx-auto space-y-8">
+  <main class="md:ml-[300px] min-h-screen p-3.5 sm:p-8 md:p-12 pb-24 bg-[#0a0a0a]">
+    <div class="max-w-6xl mx-auto space-y-6 sm:space-y-8">
       
       <!-- Top Breadcrumbs & Heavy Bold Italic Title Lockup -->
       <div>
         <div id="admin-breadcrumb" class="text-[10px] font-mono-custom uppercase tracking-[0.25em] text-zinc-500 font-bold mb-1.5">
           SYSTEM / DASHBOARD
         </div>
-        <h1 id="admin-page-title" class="text-4xl sm:text-5xl md:text-6xl font-black uppercase text-white font-hero italic tracking-tight mb-4">
+        <h1 id="admin-page-title" class="text-3xl sm:text-5xl md:text-6xl font-black uppercase text-white font-hero italic tracking-tight mb-3 sm:mb-4">
           DASHBOARD.
         </h1>
-        <div class="h-px bg-zinc-800/80 w-full mb-8"></div>
+        <div class="h-px bg-zinc-800/80 w-full mb-6 sm:mb-8"></div>
       </div>
 
       <!-- ================= PAGE 1: DASHBOARD ================= -->
-      <section id="admin-section-dashboard" class="space-y-8">
+      <section id="admin-section-dashboard" class="space-y-6 sm:space-y-8">
         <!-- 3 Stat Cards Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-5">
           
           <!-- Card 1: Total Revenue -->
-          <div class="admin-card p-6 rounded-[28px] flex flex-col justify-between space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2.5">
+          <div class="admin-card p-4 sm:p-6 rounded-[22px] sm:rounded-[28px] flex flex-col justify-between space-y-3 sm:space-y-4">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 sm:gap-2.5 min-w-0">
                 <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 </div>
-                <span class="text-[10px] font-mono-custom uppercase tracking-widest text-zinc-400 font-bold">TOTAL REVENUE</span>
+                <span class="text-[10px] font-mono-custom uppercase tracking-widest text-zinc-400 font-bold truncate">TOTAL REVENUE</span>
               </div>
-              <span class="pill-neutral">ALL TIME</span>
+              <span class="pill-neutral shrink-0">ALL TIME</span>
             </div>
             <div>
-              <div id="dash-total-revenue" class="text-3xl sm:text-4xl font-black text-white font-mono-custom tracking-tight">₹0</div>
+              <div id="dash-total-revenue" class="text-2xl sm:text-4xl font-black text-white font-mono-custom tracking-tight">₹0</div>
               <span class="text-[11px] text-zinc-500 font-mono-custom mt-1 block">Real dispatch value</span>
             </div>
           </div>
 
           <!-- Card 2: Avg Order Value -->
-          <div class="admin-card p-6 rounded-[28px] flex flex-col justify-between space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2.5">
+          <div class="admin-card p-4 sm:p-6 rounded-[22px] sm:rounded-[28px] flex flex-col justify-between space-y-3 sm:space-y-4">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 sm:gap-2.5 min-w-0">
                 <div class="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 </div>
-                <span class="text-[10px] font-mono-custom uppercase tracking-widest text-zinc-400 font-bold">AVG. ORDER VALUE</span>
+                <span class="text-[10px] font-mono-custom uppercase tracking-widest text-zinc-400 font-bold truncate">AVG. ORDER VALUE</span>
               </div>
-              <span class="pill-neutral">PER TICKET</span>
+              <span class="pill-neutral shrink-0">PER TICKET</span>
             </div>
             <div>
-              <div id="dash-avg-order" class="text-3xl sm:text-4xl font-black text-white font-mono-custom tracking-tight">₹0</div>
+              <div id="dash-avg-order" class="text-2xl sm:text-4xl font-black text-white font-mono-custom tracking-tight">₹0</div>
               <span class="text-[11px] text-zinc-500 font-mono-custom mt-1 block">Calculated from completed</span>
             </div>
           </div>
 
           <!-- Card 3: Dispatch Queue -->
-          <div class="admin-card p-6 rounded-[28px] flex flex-col justify-between space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2.5">
+          <div class="admin-card p-4 sm:p-6 rounded-[22px] sm:rounded-[28px] flex flex-col justify-between space-y-3 sm:space-y-4">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 sm:gap-2.5 min-w-0">
                 <div class="w-7 h-7 rounded-lg bg-[#ff5500]/10 border border-[#ff5500]/25 flex items-center justify-center text-[#ff5500] shrink-0">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
                 </div>
-                <span class="text-[10px] font-mono-custom uppercase tracking-widest text-zinc-400 font-bold">DISPATCH QUEUE</span>
+                <span class="text-[10px] font-mono-custom uppercase tracking-widest text-zinc-400 font-bold truncate">DISPATCH QUEUE</span>
               </div>
-              <span class="pill-orange">REQUIRES ACTION</span>
+              <span class="pill-orange shrink-0">REQUIRES ACTION</span>
             </div>
             <div>
-              <div id="dash-dispatch-queue" class="text-3xl sm:text-4xl font-black text-[#ff5500] font-mono-custom tracking-tight">0</div>
+              <div id="dash-dispatch-queue" class="text-2xl sm:text-4xl font-black text-[#ff5500] font-mono-custom tracking-tight">0</div>
               <span class="text-[11px] text-zinc-500 font-mono-custom mt-1 block">Consignments pending</span>
             </div>
           </div>
@@ -255,18 +255,18 @@
         </div>
 
         <!-- Recent Transactions Card -->
-        <div class="admin-card rounded-[28px] p-6 sm:p-7 shadow-2xl">
-          <div class="flex items-center justify-between pb-4 mb-5 border-b border-zinc-800/80">
-            <div class="flex items-center gap-3">
+        <div class="admin-card rounded-[22px] sm:rounded-[28px] p-3.5 sm:p-6 md:p-7 shadow-2xl overflow-hidden">
+          <div class="flex items-center justify-between gap-2 pb-3.5 sm:pb-4 mb-4 sm:mb-5 border-b border-zinc-800/80">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
               <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 shrink-0">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
-              <div>
-                <span class="text-xs font-mono-custom uppercase tracking-wider text-zinc-300 font-black block">RECENT_TRANSACTIONS</span>
-                <span class="text-[9px] font-mono-custom uppercase tracking-widest text-zinc-500 font-bold block">FULFILLMENT_STREAM</span>
+              <div class="min-w-0 flex-1">
+                <span class="text-xs font-mono-custom uppercase tracking-wider text-zinc-300 font-black block truncate">RECENT_TRANSACTIONS</span>
+                <span class="text-[9px] font-mono-custom uppercase tracking-widest text-zinc-500 font-bold block truncate">FULFILLMENT_STREAM</span>
               </div>
             </div>
-            <span class="pill-green flex items-center gap-1.5">
+            <span class="pill-green flex items-center gap-1.5 shrink-0">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
               <span>LIVE_FEED</span>
             </span>
@@ -363,21 +363,23 @@
       </section>
 
       <!-- ================= PAGE 3: ORDERS ================= -->
-      <section id="admin-section-orders" class="hidden space-y-6">
-        <div class="flex items-center justify-between p-4 bg-[#111111] rounded-2xl border border-zinc-800">
-          <span class="text-xs font-mono-custom uppercase text-zinc-400 font-bold">FULFILLMENT DISPATCH PIPELINE</span>
-          <div class="flex items-center gap-2.5">
-            <button type="button" onclick="syncAdminOrdersFromCloud()" class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-[10px] font-mono-custom font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              <span>Sync Cloud</span>
-            </button>
-            <button type="button" onclick="clearAdminOrders()" class="px-3 py-1.5 rounded-lg bg-red-950/60 border border-red-500/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 text-[10px] font-mono-custom font-bold uppercase tracking-wider transition-colors">
-              Clear All Orders
-            </button>
-            <span id="orders-source-badge" class="pill-green flex items-center gap-1.5">
+      <section id="admin-section-orders" class="hidden space-y-4 sm:space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 bg-[#111111] rounded-2xl border border-zinc-800">
+          <div class="flex items-center justify-between sm:justify-start gap-2">
+            <span class="text-xs font-mono-custom uppercase text-zinc-400 font-bold">DISPATCH PIPELINE</span>
+            <span id="orders-source-badge" class="pill-green flex items-center gap-1.5 shrink-0">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
               <span>CLOUD_SYNC</span>
             </span>
+          </div>
+          <div class="flex items-center gap-2 self-stretch sm:self-auto justify-end">
+            <button type="button" onclick="syncAdminOrdersFromCloud()" class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-[10px] font-mono-custom font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              <span>Sync Cloud</span>
+            </button>
+            <button type="button" onclick="clearAdminOrders()" class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-lg bg-red-950/60 border border-red-500/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 text-[10px] font-mono-custom font-bold uppercase tracking-wider transition-colors">
+              Clear All Orders
+            </button>
           </div>
         </div>
 

@@ -759,6 +759,22 @@ header {
   transform: translate(-50%, -50%) scale(1);
 }
 
+@media (max-width: 640px) {
+  .checkout-modal-container {
+    width: 95%;
+    max-height: 92vh;
+    padding: 1.25rem 1rem;
+    border-radius: 1rem;
+  }
+  .modal-container {
+    width: 95%;
+    max-height: 92vh;
+    padding: 1.25rem 1rem;
+    border-radius: 1rem;
+    overflow-y: auto;
+  }
+}
+
 /* Machine Name Overflow Prevention */
 .admin-product-title {
   display: block;
