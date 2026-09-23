@@ -1017,11 +1017,13 @@ function renderCartDrawer() {
     `;
   }).join("");
 
-  const gst = Math.round(subtotal * 0.18);
-  const grandTotal = subtotal + gst;
+  const shipping = subtotal > 0 ? 50 : 0;
+  const grandTotal = subtotal + shipping;
 
   if (subtotalSpan) subtotalSpan.textContent = `₹${subtotal.toLocaleString('en-IN')}`;
-  if (gstSpan) gstSpan.textContent = `₹${gst.toLocaleString('en-IN')}`;
+  if (gstSpan) gstSpan.textContent = "₹0";
+  const shippingSpan = document.getElementById("cart-shipping");
+  if (shippingSpan) shippingSpan.textContent = shipping > 0 ? "₹50 Flat Rate" : "₹0";
   if (totalSpan) totalSpan.textContent = `₹${grandTotal.toLocaleString('en-IN')}`;
 }
 
@@ -1106,8 +1108,8 @@ function renderCheckoutSummary() {
     `;
   }).join("");
 
-  const gst = Math.round(subtotal * 0.18);
-  const grandTotal = subtotal + gst;
+  const shipping = subtotal > 0 ? 50 : 0;
+  const grandTotal = subtotal + shipping;
 
   if (totalPayableSpan) {
     totalPayableSpan.textContent = `₹${grandTotal.toLocaleString('en-IN')}`;
@@ -1144,7 +1146,8 @@ function handleCheckoutSubmit(e) {
   const orderId = `NTT-${Date.now().toString().slice(-6)}`;
 
   let subtotal = state.checkoutItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  let grandTotal = Math.round(subtotal * 1.18);
+  const shipping = subtotal > 0 ? 50 : 0;
+  let grandTotal = subtotal + shipping;
 
   // Populate Order Success Modal
   document.getElementById("success-order-id").textContent = orderId;
@@ -1157,7 +1160,7 @@ function handleCheckoutSubmit(e) {
   const itemsText = state.checkoutItems.map(i => `• ${i.quantity}x ${i.name} (₹${(i.price * i.quantity).toLocaleString('en-IN')})`).join('\n');
   const fullAddressStr = `${address}, ${city}, ${stateVal} - ${pincode}`;
   
-  const waMessage = `*NEW ORDER PLACED!* 🛍️\n\n*Order ID:* ${orderId}\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*Alt Phone:* ${altPhone}\n*Delivery Address:* ${fullAddressStr}\n*Payment Method:* Cash on Delivery (COD)\n\n*ORDERED ITEMS:*\n${itemsText}\n\n*Total Amount Payable:* ₹${grandTotal.toLocaleString('en-IN')} (Incl. GST & Express Shipping)\n\nPlease dispatch this consignment via Cash on Delivery.`;
+  const waMessage = `*NEW ORDER PLACED!* 🛍️\n\n*Order ID:* ${orderId}\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*Alt Phone:* ${altPhone}\n*Delivery Address:* ${fullAddressStr}\n*Payment Method:* Cash on Delivery (COD)\n\n*ORDERED ITEMS:*\n${itemsText}\n\n*Total Amount Payable:* ₹${grandTotal.toLocaleString('en-IN')} (Incl. ₹50 Flat Delivery Charge)\n\nPlease dispatch this consignment via Cash on Delivery.`;
   
   const waBtn = document.getElementById("btn-success-whatsapp");
   if (waBtn) {
